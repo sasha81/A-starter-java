@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package users;
+
+
+service UsersService {
+    rpc CreateUser (CreateUserDto) returns (User) {}
+    rpc FindAllUsers (Empty) returns (UsersWithGroupsDto) {}    
+    rpc UpdateUser (User) returns (User) {}    
+}
+
+message CreateUserDto {
+    string username = 1;
+    int32 userage = 2;
+}
+
+message User {
+    string userId = 1;
+    string username = 2;    
+    int32 userage = 3;
+   
+}
+
+message Group {
+    string groupId = 1;
+    string groupname = 2;
+    string userId = 3;
+    bool groupstatus = 4;
+    bool userstatus = 5;
+}
+
+message UserViewDto {
+    string userId = 1;
+    string username = 2;    
+    int32 userage = 3;
+    repeated Group groups = 4;
+}
+
+message UsersWithGroupsDto {
+    repeated UserViewDto usersWithGroups = 1;
+}
+
+message Empty {};

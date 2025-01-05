@@ -1,0 +1,52 @@
+server:
+  port: 9090
+  http2:
+    enabled: true
+#  ssl:
+#    key-store-type: PKCS12
+#    key-store: classpath:keystore.p12
+#    key-store-password: password
+#    key-password: password
+#    enabled: true
+spring:
+  application:
+    name: ms-gateway
+
+  cloud:
+    gateway:
+
+      routes:
+        - id: employeeModule
+          uri: lb://rest-adapter
+          predicates:
+            - Path=/users/**
+#          filters:
+#            - StripPrefix=1
+        - id: optimizerModule
+          uri: lb://optimizer
+          predicates:
+            - Path=/optimizer/**
+        - id: auxServiceModule
+          uri: lb://java-aux-service
+          predicates:
+            - Path=/aux-data/**
+        - id: orchestratorModule
+          uri: lb://orchestrator
+          predicates:
+            - Path=/orchestrator/**
+        - id: graphqlAdapterModule
+          uri: lb://graphql-adapter
+          predicates:
+            - Path=/graphql-adapter/**
+          filters:
+            - StripPrefix=1
+
+eureka:
+  client:
+    enabled: true
+    registerWithEureka: true
+    fetchRegistry: true
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+    instance:
+      prefer-ip-address: true

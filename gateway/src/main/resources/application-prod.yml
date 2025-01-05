@@ -1,0 +1,58 @@
+server:
+  port: 9090
+spring:
+  application:
+    name: ms-gateway
+
+  cloud:
+    gateway:
+#      globalcors:
+#        add-to-simple-url-handler-mapping: true
+#        corsConfigurations:
+#          '[/**]':
+#            allowedHeaders:
+#              - "Origin"
+#              - "Content-Type"
+#              - "Accept"
+#              - "Authorization"
+#              - "Referer"
+#            allowedMethods:
+#              - POST
+#              - GET
+#              - OPTIONS
+#              - DELETE
+#              - PUT
+#              - HEAD
+#              - PATCH
+        default-filters:
+          - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin, RETAIN_FIRST
+#  cloud:
+#    gateway:
+#      routes:
+#        - id: employeeModule
+#          uri: lb://my-app
+#          predicates:
+#            - Path=/users/**
+#        - id: optimizerModule
+#          uri: lb://optimizer
+##          uri: http://0.0.0.0:3011
+#          predicates:
+#            - Path=/optimizer/**
+#        - id: auxServiceModule
+#          uri: lb://java-aux-service
+#          predicates:
+#            - Path=/aux-data/**
+#        - id: orchestratorModule
+#          uri: lb://orchestrator
+#          predicates:
+#            - Path=/orchestrator/**
+
+eureka:
+  client:
+    enabled: true
+    registerWithEureka: true
+    fetchRegistry: true
+    serviceUrl:
+      defaultZone: http://eureka-server:8761/eureka
+    instance:
+      prefer-ip-address: true

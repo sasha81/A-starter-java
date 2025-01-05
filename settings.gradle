@@ -1,0 +1,8 @@
+rootProject.name = 'A-starter-java'
+include 'eureka'
+include 'gateway'
+include 'commons'
+include 'composer-adapter'
+include 'composer-core'
+include 'composer-graphql-adapter'
+

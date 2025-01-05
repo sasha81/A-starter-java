@@ -1,0 +1,17 @@
+#server:
+#  port: 8761
+#
+#spring:
+#  docker:
+#    compose:
+#      enabled: true
+#      file: "../../docker-compose.yaml"
+
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    registerWithEureka: false
+    fetchRegistry: false
+    serviceUrl:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/

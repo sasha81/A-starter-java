@@ -1,0 +1,60 @@
+type Query {
+    greet(name: String): String
+}
+
+type Subscription {
+    newXtask(xTaskDto: TaskInput) : TaskOutput
+    test(num: String): String
+}
+
+input TaskInput {
+    rest_input: String!
+    amqp_input: String!
+    grpc_input: String!
+}
+type UserView {
+    userId: String!
+    name: String
+    age: Int
+    groups: [Group]
+}
+
+type Group {
+    groupId: String!
+    groupName: String
+    groupStatus: Boolean
+    userId: String
+    userStatus: Boolean
+}
+
+type ContainerUser {
+    userViewContent: [UserView]
+}
+type ContainerResults {
+    numberOfUsersMatch: DegreesOfMatching
+    groupsOfTheSameUserMatch: DegreesOfMatching
+}
+union OutputContent = ContainerResults | ContainerUser
+
+type TaskOutput {
+   taskId: String!
+    stage: ProcessStages
+    content: OutputContent
+    error: String
+}
+
+enum ProcessStages {
+    GRPC
+    AMQP
+    REST
+    STOP
+    FINISH
+}
+enum DegreesOfMatching {
+    EXACT_MATCH
+    CLOSE
+    SO_SO
+    DIFFERENT
+    VERY_DIFFERENT
+
+}

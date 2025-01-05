@@ -1,0 +1,129 @@
+spring:
+  application:
+    name: composer-core
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password: password
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+  activemq:
+    broker-url: tcp://localhost:61616
+    packages:
+      trust-all: true
+  main:
+    allow-bean-definition-overriding: true
+camel:
+  servlet:
+    mapping:
+      context-path: /composer/*
+  springboot:
+    routes-include-pattern: classpath:camel-routes/*
+    tracing: false
+  thread-pool:
+    pool-size: 28
+    max-pool-size: 48
+    config:
+      max-pool-size: 38
+      pool-size: 58
+  component:
+    rabbitmq:
+      prefetchEnabled: true
+      prefetchGlobal: false
+      prefetchSize: 0
+      prefetchCount: 1
+  dataformat:
+    jackson:
+      auto-discover-object-mapper: true
+
+
+
+jss:
+  camel:
+    hello:
+      enabled: false
+    seda:
+      enabled: false
+    file:
+      enabled: false
+    rabbitmq:
+      enabled: true
+    rabbitmq-throttler:
+      enabled: false
+    wiretap:
+      enabled: false
+    rest-java-dsl:
+      enabled: false
+    #Weather (Non Rabbit); enable rabbitmq for Rest with Rabbit
+    rest-dsl:
+      enabled: false
+    rest-metrics:
+      enabled: false
+    kafka:
+      enabled: false
+    error-handlers:
+      enabled: false
+    jms:
+      enabled: false
+    testcontainers:
+      enabled: false
+    saga:
+      enabled: true
+    circuit-breaker:
+      enabled: false
+
+rest:
+  host: localhost
+  port: 3000
+  uri: '/users/all'
+
+rabbitmq:
+  host: localhost
+  port: 5672
+  username: sasha
+  password: sasha
+  exchange: aux_exchange
+  queue: aux_queue
+  routingkey: aux_routingkey
+  nest-queue: nest-front-back
+  nest-routingkey: nest-routingkey
+  python-queue: python-queue
+  python-routingkey: python-routingkey
+  virtualhost: /
+  reply:
+    timeout: 60000
+  concurrent:
+    consumers: 1
+  max:
+    concurrent:
+      consumers: 1
+grpc:
+  client:
+    nest-grpc:
+      address: 'static://localhost:3011'
+      negotiationType: plaintext
+    python-grpc:
+      address: 'static://0.0.0.0:5001'
+      negotiationType: plaintext
+    java-grpc:
+      address: 'static://localhost:9052'
+      negotiationType: plaintext
+
+
+logging:
+  level:
+    root: INFO
+    com.orchestrator.routes.sagas: INFO
+  file:
+    name: /composer/logs/application-debug1.log
+
+eureka:
+  client:
+    enabled: true
+    registerWithEureka: true
+    fetchRegistry: true
+    serviceUrl:
+      defaultZone: http://eureka-server:8761/eureka
+    instance:
+      prefer-ip-address: true
