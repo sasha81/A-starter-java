@@ -2,10 +2,7 @@ package org.composer.adapter.services;
 
 
 import org.composer.adapter.dto.*;
-import org.composer.core.model.FluxMessageContainer;
-import org.composer.core.model.ModelUser;
-import org.composer.core.model.ProcessStages;
-import org.composer.core.model.XTaskModel;
+import org.composer.core.model.*;
 import org.composer.core.utils.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,18 +14,24 @@ import java.util.UUID;
 @Service
 public class FluxProcessingService implements IFluxProcessingService  {
     Logger logger = LoggerFactory.getLogger(FluxProcessingService.class);
+
+    @Override
+    public Specs getSpecsFromInput(TaskInput input) {
+        return Specs.builder().taskId(getTaskId()).specifications(input.getSpecifics()).build();
+    }
+
     public String getTaskId(){
         return UUID.randomUUID().toString();
     }
 
-    public XTaskModel getXModelFromDto(TaskInput dto, String taskId){
-        return XTaskModel.builder()
-                .task_id(taskId)
-                .rest_step(Task.<String, String, List<ModelUser>>builder().input(dto.getRest_input()).build())
-                .amqp_step(Task.<String, String, List<ModelUser>>builder().input(dto.getAmqp_input()).build())
-                .grpc_step(Task.<String, String, List<ModelUser>>builder().input(dto.getGrpc_input()).build())
-                .build();
-    }
+//    public XTaskModel getXModelFromDto(TaskInput dto, String taskId){
+//        return XTaskModel.builder()
+//                .task_id(taskId)
+//                .rest_step(Task.<String, String, List<ModelUser>>builder().input(dto.getSpecifics()).build())
+//                .amqp_step(Task.<String, String, List<ModelUser>>builder().input(dto.getSpecifics()).build())
+//                .grpc_step(Task.<String, String, List<ModelUser>>builder().input(dto.getSpecifics()).build())
+//                .build();
+//    }
     public Flux<TaskOutput> postProcessContainerFlux(Flux<FluxMessageContainer<?>> inFlux, String taskId, Runnable doOnCancel){
         Flux<TaskOutput> outFlux = inFlux
                 .filter(msg-> msg.getTaskId().equals(taskId))

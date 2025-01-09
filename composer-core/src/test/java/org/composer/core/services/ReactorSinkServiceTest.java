@@ -6,10 +6,7 @@ import org.apache.camel.clock.Clock;
 import org.apache.camel.impl.engine.SimpleCamelContext;
 import org.apache.camel.spi.UnitOfWork;
 import org.apache.camel.support.DefaultExchange;
-import org.composer.core.model.FluxMessageContainer;
-import org.composer.core.model.ModelGroup;
-import org.composer.core.model.ModelUser;
-import org.composer.core.model.XTaskModel;
+import org.composer.core.model.*;
 import org.composer.core.stubs.SinkObjectServiceStub;
 import org.composer.core.utils.ISinkMapObjectService;
 import org.composer.core.utils.Task;
@@ -34,30 +31,26 @@ public class ReactorSinkServiceTest {
 
     private final SinkObjectServiceStub sinkMapService = new SinkObjectServiceStub();
     private final IReactorSinkService reactorSinkService = new ReactorSinkService(sinkMapService);
-
+    private  final ISpecToModel specToModel= new SpecToModel();
 
     private final ModelToFlux modelToFluxService= new ModelToFlux();
 
     @Test
     public void notifyAboutRestStepNoErrorTest(){
-        String taskId = "abcdef"; String userId = "123456";
-        String grpcInput = "Ann";
-        String restInput = "buddy!";
-        String amqpInput = "buddy!";
+        Specs specs = Specs.builder().specifications("Spec_1").taskId("ABCD").build();
+        String userId = "123456";
+
         ModelGroup group = ModelGroup.builder().userId(userId).groupId("123").groupName("Ggg").build();
 
         ModelUser input = ModelUser.builder().userId(userId).username("A").userage(15).groups(List.of(group)).build();
         List<ModelUser> userList = List.of(input);
-        XTaskModel model = XTaskModel.builder()
-                .task_id(taskId)
-                .rest_step(Task.<String, String, List<ModelUser>>builder().input(restInput).output(userList).build())
-                .amqp_step(Task.<String, String, List<ModelUser>>builder().input(amqpInput).output(userList).build())
-                .grpc_step(Task.<String, String, List<ModelUser>>builder().input(grpcInput).output(userList).build())
-                .build();
-
+        XTaskModel model = specToModel.getModelFromSpecs(specs);
+        model.setNextTask();
+        var  currentTask = (Task<String, String, List<ModelUser>>)model.getCurrentTask();
+        currentTask.setOutput(userList);
 
         sinkMapService.setPublishConsumer((tskId, container)->{
-            assertEquals(tskId,taskId);
+            assertEquals(tskId,specs.getTaskId());
             assertEquals(container.getContent(),userList);
 
         });
@@ -70,22 +63,17 @@ public class ReactorSinkServiceTest {
 
     @Test
     public void notifyAboutRestStepWithErrorTest(){
-        String taskId = "abcdef"; String userId = "123456";
-        String grpcInput = "Ann";
-        String restInput = "buddy!";
-        String amqpInput = "buddy!";
+        Specs specs = Specs.builder().specifications("Spec_1").taskId("ABCD").build();
+
+
         String error = "Ooops!";
-        XTaskModel model = XTaskModel.builder()
-                .task_id(taskId)
-                .rest_step(Task.<String, String, List<ModelUser>>builder().input(restInput).errorMessage(error).build())
-                .amqp_step(Task.<String, String, List<ModelUser>>builder().input(amqpInput).build())
-                .grpc_step(Task.<String, String, List<ModelUser>>builder().input(grpcInput).build())
-
-                .build();
-
+        XTaskModel model = specToModel.getModelFromSpecs(specs);
+        model.setNextTask();
+        var  currentTask = (Task<String, String, List<ModelUser>>)model.getCurrentTask();
+        currentTask.setErrorMessage(error);
 
         sinkMapService.setPublishConsumer((tskId, container)->{
-            assertEquals(tskId,taskId);
+            assertEquals(tskId,specs.getTaskId());
             assertEquals(container.getError(),error);
 
         });
@@ -97,24 +85,20 @@ public class ReactorSinkServiceTest {
     }
     @Test
     public void notifyAboutGrpcStepNoErrorTest(){
-        String taskId = "abcdef"; String userId = "123456";
-        String grpcInput = "Ann";
-        String restInput = "buddy!";
-        String amqpInput = "buddy!";
+        Specs specs = Specs.builder().specifications("Spec_1").taskId("ABCD").build();
+        String userId = "123456";
+
         ModelGroup group = ModelGroup.builder().userId(userId).groupId("123").groupName("Ggg").build();
 
         ModelUser input = ModelUser.builder().userId(userId).username("A").userage(15).groups(List.of(group)).build();
         List<ModelUser> userList = List.of(input);
-        XTaskModel model = XTaskModel.builder()
-                .task_id(taskId)
-                .rest_step(Task.<String, String, List<ModelUser>>builder().input(restInput).output(userList).build())
-                .amqp_step(Task.<String, String, List<ModelUser>>builder().input(amqpInput).output(userList).build())
-                .grpc_step(Task.<String, String, List<ModelUser>>builder().input(grpcInput).output(userList).build())
-                .build();
-
+        XTaskModel model = specToModel.getModelFromSpecs(specs);
+        model.setNextTask();
+        var  currentTask = (Task<String, String, List<ModelUser>>)model.getCurrentTask();
+        currentTask.setOutput(userList);
 
         sinkMapService.setPublishConsumer((tskId, container)->{
-            assertEquals(tskId,taskId);
+            assertEquals(tskId,specs.getTaskId());
             assertEquals(container.getContent(),userList);
 
         });
@@ -127,22 +111,17 @@ public class ReactorSinkServiceTest {
 
     @Test
     public void notifyAboutGrpcStepWithErrorTest(){
-        String taskId = "abcdef"; String userId = "123456";
-        String grpcInput = "Ann";
-        String restInput = "buddy!";
-        String amqpInput = "buddy!";
+        Specs specs = Specs.builder().specifications("Spec_1").taskId("ABCD").build();
+        String taskId = "abcdef";
+
         String error = "Ooops!";
-        XTaskModel model = XTaskModel.builder()
-                .task_id(taskId)
-                .rest_step(Task.<String, String, List<ModelUser>>builder().input(restInput).build())
-                .amqp_step(Task.<String, String, List<ModelUser>>builder().input(amqpInput).build())
-                .grpc_step(Task.<String, String, List<ModelUser>>builder().input(grpcInput).errorMessage(error).build())
-
-                .build();
-
+        XTaskModel model = specToModel.getModelFromSpecs(specs);
+        model.setNextTask();
+        var  currentTask = (Task<String, String, List<ModelUser>>)model.getCurrentTask();
+        currentTask.setErrorMessage(error);
 
         sinkMapService.setPublishConsumer((tskId, container)->{
-            assertEquals(tskId,taskId);
+            assertEquals(tskId,specs.getTaskId());
             assertEquals(container.getError(),error);
 
         });
@@ -154,24 +133,20 @@ public class ReactorSinkServiceTest {
     }
     @Test
     public void notifyAboutAmqpStepNoErrorTest(){
+        Specs specs = Specs.builder().specifications("Spec_1").taskId("ABCD").build();
         String taskId = "abcdef"; String userId = "123456";
-        String grpcInput = "Ann";
-        String restInput = "buddy!";
-        String amqpInput = "buddy!";
+
         ModelGroup group = ModelGroup.builder().userId(userId).groupId("123").groupName("Ggg").build();
 
         ModelUser input = ModelUser.builder().userId(userId).username("A").userage(15).groups(List.of(group)).build();
         List<ModelUser> userList = List.of(input);
-        XTaskModel model = XTaskModel.builder()
-                .task_id(taskId)
-                .rest_step(Task.<String, String, List<ModelUser>>builder().input(restInput).output(userList).build())
-                .amqp_step(Task.<String, String, List<ModelUser>>builder().input(amqpInput).output(userList).build())
-                .grpc_step(Task.<String, String, List<ModelUser>>builder().input(grpcInput).output(userList).build())
-                .build();
-
+        XTaskModel model = specToModel.getModelFromSpecs(specs);
+        model.setNextTask();
+        var  currentTask = (Task<String, String, List<ModelUser>>)model.getCurrentTask();
+        currentTask.setOutput(userList);
 
         sinkMapService.setPublishConsumer((tskId, container)->{
-            assertEquals(tskId,taskId);
+            assertEquals(tskId,specs.getTaskId());
             assertEquals(container.getContent(),userList);
 
         });
@@ -184,22 +159,17 @@ public class ReactorSinkServiceTest {
 
     @Test
     public void notifyAboutAmqpStepWithErrorTest(){
-        String taskId = "abcdef"; String userId = "123456";
-        String grpcInput = "Ann";
-        String restInput = "buddy!";
-        String amqpInput = "buddy!";
+        Specs specs = Specs.builder().specifications("Spec_1").taskId("ABCD").build();
+        String taskId = "abcdef";
+
         String error = "Ooops!";
-        XTaskModel model = XTaskModel.builder()
-                .task_id(taskId)
-                .rest_step(Task.<String, String, List<ModelUser>>builder().input(restInput).build())
-                .amqp_step(Task.<String, String, List<ModelUser>>builder().input(amqpInput).errorMessage(error).build())
-                .grpc_step(Task.<String, String, List<ModelUser>>builder().input(grpcInput).build())
-
-                .build();
-
+        XTaskModel model = specToModel.getModelFromSpecs(specs);
+        model.setNextTask();
+        var  currentTask = (Task<String, String, List<ModelUser>>)model.getCurrentTask();
+        currentTask.setErrorMessage(error);
 
         sinkMapService.setPublishConsumer((tskId, container)->{
-            assertEquals(tskId,taskId);
+            assertEquals(tskId,specs.getTaskId());
             assertEquals(container.getError(),error);
 
         });

@@ -13,8 +13,11 @@ import org.composer.core.converters.AMQPModelGroupDto;
 import org.composer.core.converters.AMQPModelUserDto;
 import org.composer.core.converters.AMQPUserModelDtoContainer;
 import org.composer.core.model.ModelUser;
+import org.composer.core.model.Specs;
 import org.composer.core.model.XTaskModel;
 import org.composer.core.services.AMQPFutureProcessor;
+import org.composer.core.services.ISpecToModel;
+import org.composer.core.services.SpecToModel;
 import org.composer.core.stubs.AsyncAmqpTemplateStub;
 import org.composer.core.utils.Task;
 import org.junit.jupiter.api.Test;
@@ -34,9 +37,11 @@ import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(MockitoExtension.class)
 public class AMQPProcessorTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
-
+    private  final ISpecToModel specToModel= new SpecToModel();
     @Test
     public void aMQPProcessorTest(){
+        Specs specs = Specs.builder().specifications("Spec_1").taskId("ABCD").build();
+
         CountDownLatch latch = new CountDownLatch(1);
         CamelContext camelContext = new SimpleCamelContext();
         String rabbitExchName="abc";
@@ -71,17 +76,9 @@ public class AMQPProcessorTest {
 
         Exchange exchange = new DefaultExchange(camelContext);
 
-        String taskId="abcdef";
-        String grpcInput= "Ann";
 
-        String amqpInput = "John";
-        String restInput = "Mark";
-        XTaskModel model = XTaskModel.builder()
-                .task_id(taskId)
-                .rest_step(Task.<String, String, List<ModelUser>>builder().input(restInput).build())
-                .amqp_step(Task.<String, String, List<ModelUser>>builder().input(amqpInput).build())
-                .grpc_step(Task.<String, String, List<ModelUser>>builder().input(grpcInput).build())
-                .build();
+        XTaskModel model = specToModel.getModelFromSpecs(specs);
+        model.setNextTask();
 
         exchange.getMessage().setBody(model);
 
@@ -92,15 +89,18 @@ public class AMQPProcessorTest {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-        assertNotNull(modelOut.getAmqp_step().getOutput());
-        assertEquals(modelOut.getAmqp_step().getOutput().get(0).getUsername(),userViewDto.getName());
-        assertEquals(modelOut.getAmqp_step().getOutput().get(0).getUserage(),userViewDto.getAge());
-        assertEquals(modelOut.getAmqp_step().getOutput().get(0).getUserId(),userViewDto.getUserId());
-        assertEquals(modelOut.getAmqp_step().getOutput().get(0).getGroups().size(),userViewDto.getGroups().size());
+        var  currentTask = (Task<String, String, List<ModelUser>>)modelOut.getCurrentTask();
+        assertNotNull(currentTask.getOutput());
+        assertEquals(currentTask.getOutput().get(0).getUserId(),userViewDto.getUserId());
+        assertEquals(currentTask.getOutput().get(0).getUsername(),userViewDto.getName());
+        assertEquals(currentTask.getOutput().get(0).getGroups().get(0).getGroupId(),group.getGroupId());
+        assertEquals(currentTask.getOutput().get(0).getGroups().get(0).getUserId(),group.getUserId());
     }
 
     @Test
     public void aMQPProcessorErrorTest(){
+        Specs specs = Specs.builder().specifications("Spec_1").taskId("ABCD").build();
+
         CountDownLatch latch = new CountDownLatch(1);
         CamelContext camelContext = new SimpleCamelContext();
         String rabbitExchName="abc";
@@ -119,12 +119,7 @@ public class AMQPProcessorTest {
             return future;
         });
         AMQPFutureProcessor processor = new AMQPFutureProcessor(rabbitTemplate,rabbitExchName,rabbitRoutKey);
-//        doAnswer(invocation->{
-//            Message msg = invocation.getArgument(2);
-//            CompletableFuture<Message> future = CompletableFuture.completedFuture(outMessage);
-//            latch.countDown();
-//          return future;
-//        }).when(rabbitTemplate).sendAndReceive(any(String.class),any(String.class),any(Message.class));
+
 
         Exchange exchange = new DefaultExchange(camelContext);
 
@@ -133,12 +128,8 @@ public class AMQPProcessorTest {
 
         String amqpInput = "John";
         String restInput = "Mark";
-        XTaskModel model = XTaskModel.builder()
-                .task_id(taskId)
-                .rest_step(Task.<String, String, List<ModelUser>>builder().input(restInput).build())
-                .amqp_step(Task.<String, String, List<ModelUser>>builder().input(amqpInput).build())
-                .grpc_step(Task.<String, String, List<ModelUser>>builder().input(grpcInput).build())
-                .build();
+        XTaskModel model = specToModel.getModelFromSpecs(specs);
+        model.setNextTask();
 
         exchange.getMessage().setBody(model);
 
@@ -149,7 +140,7 @@ public class AMQPProcessorTest {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-        assertNull(modelOut.getAmqp_step().getOutput());
-        assertTrue(modelOut.getAmqp_step().getErrorMessage().contains(exception.getMessage()));
+        assertNull(modelOut.getCurrentTask().getOutput());
+        assertTrue(modelOut.getCurrentTask().getErrorMessage().contains(exception.getMessage()));
     }
 }

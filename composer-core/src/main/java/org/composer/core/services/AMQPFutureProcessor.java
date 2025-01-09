@@ -5,7 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.composer.core.converters.AMQPModelUserDto;
 import org.composer.core.converters.AMQPUserModelDtoContainer;
 import org.composer.core.converters.GetUserModel;
+import org.composer.core.model.ModelUser;
 import org.composer.core.model.XTaskModel;
+import org.composer.core.utils.Task;
 import org.example.common.utils.AmqpMessageCustom;
 import org.apache.camel.Exchange;
 import org.slf4j.Logger;
@@ -14,6 +16,7 @@ import org.springframework.amqp.core.AsyncAmqpTemplate;
 import org.springframework.amqp.core.Message;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -45,7 +48,7 @@ public class AMQPFutureProcessor extends AbstractFutureAsyncProcessor<String,Str
     protected String getInputFromExchange(Exchange exchange) {
 
         XTaskModel body =  exchange.getMessage().getBody(XTaskModel.class);
-        String arg = body.getAmqp_step().getInput();
+        String arg = body.getCurrentTask().getInput();
         return arg;
     }
 
@@ -84,22 +87,20 @@ public class AMQPFutureProcessor extends AbstractFutureAsyncProcessor<String,Str
 
     public static String getErrorMessage(Throwable t){
         return t.getMessage();
-//        if(t instanceof RuntimeException){
-//            return t.getMessage();//"ERROR: DATA UNAVAILABLE";
-//        }
-//        else{
-//            return "ERROR: UNKNOWN ERROR";
-//        }
+
     }
 
     public static XTaskModel setError(Exchange exchange, String output){
         XTaskModel body =  exchange.getMessage().getBody( XTaskModel.class);
-        body.getAmqp_step().setErrorMessage(output);
+        var  currentTask = (Task<String, String, List<ModelUser>>)body.getCurrentTask();
+        currentTask.setErrorMessage(output);
         return body;
     }
     public static XTaskModel setBody(Exchange exchange, AMQPModelUserDto[]  output){
         XTaskModel body =  exchange.getMessage().getBody( XTaskModel.class);
-        body.getAmqp_step().setOutput(Stream.of(output).map(GetUserModel::fromDto).collect(Collectors.toList()));
+        List<ModelUser> list = Stream.of(output).map(GetUserModel::fromDto).collect(Collectors.toList());
+        var  currentTask = (Task<String, String, List<ModelUser>>)body.getCurrentTask();
+        currentTask.setOutput(list);
         return body;
     }
 }

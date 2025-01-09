@@ -1,9 +1,7 @@
 package org.composer.core.services;
 
 
-import org.composer.core.model.FluxMessageContainer;
-import org.composer.core.model.ModelUser;
-import org.composer.core.model.XTaskModel;
+import org.composer.core.model.*;
 import org.composer.core.utils.Task;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,60 +13,60 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(MockitoExtension.class)
 public class ModelToFluxTest {
-
+    private  final ISpecToModel specToModel= new SpecToModel();
     private final ModelToFlux modelToFluxService= new ModelToFlux();
 
     @Test
     public void modelToGrpcContainer(){
-        String taskId = "abcdef";
-        String grpcInput = "Ann";
-        String restInput = "buddy!";
-        String amqpInput = "buddy!";
-        XTaskModel model = XTaskModel.builder()
-                .task_id(taskId)
-                .rest_step(Task.<String, String, List<ModelUser>>builder().input(restInput).build())
-                .amqp_step(Task.<String, String, List<ModelUser>>builder().input(amqpInput).build())
-                .grpc_step(Task.<String, String, List<ModelUser>>builder().input(grpcInput).build())
-                .build();
+        Specs specs = Specs.builder().specifications("Spec_1").taskId("ABCD").build();
+        String userId = "12345";
+        ModelGroup group = ModelGroup.builder().userId(userId).groupId("123").groupName("Ggg").build();
+
+        ModelUser input = ModelUser.builder().userId(userId).username("A").userage(15).groups(List.of(group)).build();
+        List<ModelUser> userList = List.of(input);
+        XTaskModel model = specToModel.getModelFromSpecs(specs);
+        model.setNextTask();
+        var  currentTask = (Task<String, String, List<ModelUser>>)model.getCurrentTask();
+        currentTask.setOutput(userList);
         FluxMessageContainer<List<ModelUser>> result = modelToFluxService.getFluxUserGRPCContainer(model);
 
-        assertEquals(result.getContent(),model.getGrpc_step().getOutput());
+        assertEquals(result.getContent(),model.getCurrentTask().getOutput());
 
     }
 
     @Test
     public void modelToAmqpContainer(){
-        String taskId = "abcdef";
-        String grpcInput = "Ann";
-        String restInput = "buddy!";
-        String amqpInput = "buddy!";
-        XTaskModel model = XTaskModel.builder()
-                .task_id(taskId)
-                .rest_step(Task.<String, String, List<ModelUser>>builder().input(restInput).build())
-                .amqp_step(Task.<String, String, List<ModelUser>>builder().input(amqpInput).build())
-                .grpc_step(Task.<String, String, List<ModelUser>>builder().input(grpcInput).build())
-                .build();
+        Specs specs = Specs.builder().specifications("Spec_1").taskId("ABCD").build();
+        String userId = "12345";
+        ModelGroup group = ModelGroup.builder().userId(userId).groupId("123").groupName("Ggg").build();
+
+        ModelUser input = ModelUser.builder().userId(userId).username("A").userage(15).groups(List.of(group)).build();
+        List<ModelUser> userList = List.of(input);
+        XTaskModel model = specToModel.getModelFromSpecs(specs);
+        model.setNextTask();
+        var  currentTask = (Task<String, String, List<ModelUser>>)model.getCurrentTask();
+        currentTask.setOutput(userList);
         FluxMessageContainer<List<ModelUser>> result = modelToFluxService.getFluxUserAMQPContainer(model);
 
-        assertEquals(result.getContent(),model.getAmqp_step().getOutput());
+        assertEquals(result.getContent(),model.getCurrentTask().getOutput());
 
     }
 
     @Test
     public void modelToRestContainer(){
-        String taskId = "abcdef";
-        String grpcInput = "Ann";
-        String restInput = "buddy!";
-        String amqpInput = "buddy!";
-        XTaskModel model = XTaskModel.builder()
-                .task_id(taskId)
-                .rest_step(Task.<String, String, List<ModelUser>>builder().input(restInput).build())
-                .amqp_step(Task.<String, String, List<ModelUser>>builder().input(amqpInput).build())
-                .grpc_step(Task.<String, String, List<ModelUser>>builder().input(grpcInput).build())
-                .build();
+        Specs specs = Specs.builder().specifications("Spec_1").taskId("ABCD").build();
+        String userId = "12345";
+        ModelGroup group = ModelGroup.builder().userId(userId).groupId("123").groupName("Ggg").build();
+
+        ModelUser input = ModelUser.builder().userId(userId).username("A").userage(15).groups(List.of(group)).build();
+        List<ModelUser> userList = List.of(input);
+        XTaskModel model = specToModel.getModelFromSpecs(specs);
+        model.setNextTask();
+        var  currentTask = (Task<String, String, List<ModelUser>>)model.getCurrentTask();
+        currentTask.setOutput(userList);
         FluxMessageContainer<List<ModelUser>> result = modelToFluxService.getFluxUserRestContainer(model);
 
-        assertEquals(result.getContent(),model.getRest_step().getOutput());
+        assertEquals(result.getContent(),model.getCurrentTask().getOutput());
 
     }
 

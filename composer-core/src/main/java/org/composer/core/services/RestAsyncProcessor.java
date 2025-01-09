@@ -5,7 +5,9 @@ import org.apache.camel.AsyncProcessor;
 import org.apache.camel.Exchange;
 import org.composer.core.converters.GetUserModel;
 import org.composer.core.converters.RestModelUserDto;
+import org.composer.core.model.ModelUser;
 import org.composer.core.model.XTaskModel;
+import org.composer.core.utils.Task;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.List;
@@ -34,8 +36,9 @@ public class RestAsyncProcessor implements AsyncProcessor {
                 .bodyToMono(RestModelUserDto[].class)
                 .toFuture().thenApply(message->{
                     XTaskModel body =  exchange.getMessage().getBody(XTaskModel.class);
-
-            body.getRest_step().setOutput(Stream.of(message).map(GetUserModel::fromDto).toList());
+                        var list = Stream.of(message).map(GetUserModel::fromDto).toList();
+                    var  currentTask = (Task<String, String, List<ModelUser>>)body.getCurrentTask();
+                    currentTask.setOutput(list);
             exchange.getIn().setBody(body);
             return exchange;
         }).exceptionally(err-> {

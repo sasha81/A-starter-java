@@ -3,14 +3,12 @@ type Query {
 }
 
 type Subscription {
-    newXtask(xTaskDto: TaskInput) : TaskOutput
+    compareUsers(input: TaskInput) : TaskOutput
     test(num: String): String
 }
 
 input TaskInput {
-    rest_input: String!
-    amqp_input: String!
-    grpc_input: String!
+    specifics: String!
 }
 type UserView {
     userId: String!

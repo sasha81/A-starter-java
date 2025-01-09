@@ -9,6 +9,7 @@ import java.io.Serializable;
 @Data
 @Builder
 public class Task<V,I,O> implements Serializable {
+    private String executor;
     private String id;
     private V initValue;
     private I input;

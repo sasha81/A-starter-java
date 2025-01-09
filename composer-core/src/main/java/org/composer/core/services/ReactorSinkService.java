@@ -30,15 +30,15 @@ public class ReactorSinkService implements IReactorSinkService {
         XTaskModel body = exchange.getMessage().getBody(XTaskModel.class);
         String taskId = body.getTask_id();
         String msg;
-        if(body.getRest_step().getErrorMessage()==null){
-            msg=body.getRest_step().getOutput().stream().map(ModelUser::toString).collect(Collectors.joining(",", "[", "]"));
+        if(body.getCurrentTask().getErrorMessage()==null){
+
             sinkMapService.publish(taskId, modelToFlux.getFluxUserRestContainer(body));
         }else{
-            msg=body.getRest_step().getErrorMessage();
+            msg=body.getCurrentTask().getErrorMessage();
             sinkMapService.publish(taskId, FluxMessageContainer.builder()
                     .taskId(taskId).stage(ProcessStages.REST).error(msg).build());
         }
-        logger.info("RestStep :"+taskId+" "+msg);
+
    }
 
     public void notifyAboutAMQPStep(Exchange exchange){
@@ -46,16 +46,14 @@ public class ReactorSinkService implements IReactorSinkService {
         String taskId = body.getTask_id();
 
         String msg;
-        if(body.getAmqp_step().getErrorMessage()==null){
-            msg=body.getAmqp_step().getOutput().stream().map(ModelUser::toString).collect(Collectors.joining(",", "[", "]"));
+        if(body.getCurrentTask().getErrorMessage()==null){
+
             sinkMapService.publish(taskId, modelToFlux.getFluxUserAMQPContainer(body));
         }else{
-            msg=body.getAmqp_step().getErrorMessage();
+            msg=body.getCurrentTask().getErrorMessage();
             sinkMapService.publish(taskId, FluxMessageContainer.builder()
                     .taskId(taskId).stage(ProcessStages.AMQP).error(msg).build());
         }
-
-        logger.info("AMQPStep :"+taskId+" "+msg);
     }
 
     public void notifyAboutGRPCStep(Exchange exchange){
@@ -63,16 +61,15 @@ public class ReactorSinkService implements IReactorSinkService {
         String taskId = body.getTask_id();
 
         String msg;
-        if(body.getGrpc_step().getErrorMessage()==null){
-            msg=body.getGrpc_step().getOutput().stream().map(ModelUser::toString).collect(Collectors.joining(",", "[", "]"));
+        if(body.getCurrentTask().getErrorMessage()==null){
+
             sinkMapService.publish(taskId, modelToFlux.getFluxUserGRPCContainer(body) );
         }else{
-            msg=body.getGrpc_step().getErrorMessage();
+            msg=body.getCurrentTask().getErrorMessage();
             sinkMapService.publish(taskId, FluxMessageContainer.builder()
                     .taskId(taskId).stage(ProcessStages.GRPC).error(msg).build());
         }
 
-        logger.info("GRPCStep :"+taskId+" "+msg);
     }
 
     public void notifyAboutFinished(Exchange exchange){
@@ -90,32 +87,4 @@ public class ReactorSinkService implements IReactorSinkService {
                 .taskId(taskId).stage(ProcessStages.STOP).content(null).build());
     }
 
-    public FluxMessageContainer<List<ModelUser>> getFluxUserGRPCContainer(XTaskModel body){
-        return FluxMessageContainer.<List<ModelUser>>builder()
-                .taskId(body.getTask_id()).stage(ProcessStages.GRPC)
-                .content(body.getGrpc_step().getOutput())
-                .build();
-    }
-    public FluxMessageContainer<List<ModelUser>> getFluxUserAMQPContainer(XTaskModel body){
-        return FluxMessageContainer.<List<ModelUser>>builder()
-                .taskId(body.getTask_id()).stage(ProcessStages.AMQP)
-                .content(body.getAmqp_step().getOutput())
-                .build();
-    }
-    public FluxMessageContainer<List<ModelUser>> getFluxUserRestContainer(XTaskModel body){
-        return FluxMessageContainer.<List<ModelUser>>builder()
-                .taskId(body.getTask_id()).stage(ProcessStages.REST)
-                .content(body.getRest_step().getOutput())
-                .build();
-    }
-
-    public FluxMessageContainer<ContainerResults> getFluxResults(XTaskModel body){
-        return FluxMessageContainer.<ContainerResults>builder()
-                .taskId(body.getTask_id()).stage(ProcessStages.FINISH)
-                .content(ContainerResults.builder()
-                        .groupsOfTheSameUserMatch(DegreesOfMatching.CLOSE)
-                        .numberOfUsersMatch(DegreesOfMatching.DIFFERENT)
-                        .build())
-                .build();
-    }
 }

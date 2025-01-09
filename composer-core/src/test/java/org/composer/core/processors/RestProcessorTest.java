@@ -9,8 +9,11 @@ import org.apache.camel.support.DefaultExchange;
 import org.apache.camel.support.EmptyAsyncCallback;
 import org.composer.core.converters.*;
 import org.composer.core.model.ModelUser;
+import org.composer.core.model.Specs;
 import org.composer.core.model.XTaskModel;
+import org.composer.core.services.ISpecToModel;
 import org.composer.core.services.RestFutureProcessor;
+import org.composer.core.services.SpecToModel;
 import org.composer.core.utils.Task;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,9 +33,10 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class RestProcessorTest {
-
+    private  final ISpecToModel specToModel= new SpecToModel();
     @Test
     public void restProcessorTest(){
+        Specs specs = Specs.builder().specifications("Spec_1").taskId("ABCD").build();
         String uri = "/users/all";
         CountDownLatch latch = new CountDownLatch(1);
         CamelContext camelContext = new SimpleCamelContext();
@@ -65,12 +69,8 @@ public class RestProcessorTest {
 
         String amqpInput = "John";
         String restInput = "Mark";
-        XTaskModel model = XTaskModel.builder()
-                .task_id(taskId)
-                .rest_step(Task.<String, String, List<ModelUser>>builder().input(restInput).build())
-                .amqp_step(Task.<String, String, List<ModelUser>>builder().input(amqpInput).build())
-                .grpc_step(Task.<String, String, List<ModelUser>>builder().input(grpcInput).build())
-                .build();
+        XTaskModel model = specToModel.getModelFromSpecs(specs);
+        model.setNextTask();
 
         exchange.getMessage().setBody(model);
 
@@ -81,15 +81,19 @@ public class RestProcessorTest {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-        assertNotNull(modelOut.getRest_step().getOutput());
-        assertEquals(modelOut.getRest_step().getOutput().get(0).getUserId(),userViewDto.getUserId());
-        assertEquals(modelOut.getRest_step().getOutput().get(0).getUsername(),userViewDto.getName());
-        assertEquals(modelOut.getRest_step().getOutput().get(0).getUserage(),userViewDto.getAge());
-        assertEquals(modelOut.getRest_step().getOutput().get(0).getGroups().get(0).getGroupId()
+
+        var  currentTask = (Task<String, String, List<ModelUser>>)modelOut.getCurrentTask();
+
+        assertNotNull(currentTask.getOutput());
+        assertEquals(currentTask.getOutput().get(0).getUserId(),userViewDto.getUserId());
+        assertEquals(currentTask.getOutput().get(0).getUsername(),userViewDto.getName());
+        assertEquals(currentTask.getOutput().get(0).getUserage(),userViewDto.getAge());
+        assertEquals(currentTask.getOutput().get(0).getGroups().get(0).getGroupId()
                 ,userViewDto.getGroups().get(0).getGroupId());
     }
     @Test
     public void restProcessorErrorTest(){
+        Specs specs = Specs.builder().specifications("Spec_1").taskId("ABCD").build();
         String uri = "/users/all";
         CountDownLatch latch = new CountDownLatch(1);
         CamelContext camelContext = new SimpleCamelContext();
@@ -116,12 +120,8 @@ public class RestProcessorTest {
 
         String amqpInput = "John";
         String restInput = "Mark";
-        XTaskModel model = XTaskModel.builder()
-                .task_id(taskId)
-                .rest_step(Task.<String, String, List<ModelUser>>builder().input(restInput).build())
-                .amqp_step(Task.<String, String, List<ModelUser>>builder().input(amqpInput).build())
-                .grpc_step(Task.<String, String, List<ModelUser>>builder().input(grpcInput).build())
-                .build();
+        XTaskModel model = specToModel.getModelFromSpecs(specs);
+        model.setNextTask();
 
         exchange.getMessage().setBody(model);
 
@@ -132,8 +132,8 @@ public class RestProcessorTest {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-        assertNull(modelOut.getRest_step().getOutput());
-        assertTrue(modelOut.getRest_step().getErrorMessage().contains(RestFutureProcessor.getErrorMessage(exception)));
+        assertNull(modelOut.getCurrentTask().getOutput());
+        assertTrue(modelOut.getCurrentTask().getErrorMessage().contains(RestFutureProcessor.getErrorMessage(exception)));
     }
 private class WebClientMocks<R>{
     final WebClient mock;

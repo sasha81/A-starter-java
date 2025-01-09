@@ -3,6 +3,7 @@ package org.composer.core.services;
 import org.composer.core.converters.GetUserModel;
 import org.composer.core.model.ModelUser;
 import org.composer.core.model.XTaskModel;
+import org.composer.core.utils.Task;
 import org.example.common.utils.TriConsumer;
 import io.grpc.Metadata;
 import io.grpc.stub.StreamObserver;
@@ -56,7 +57,7 @@ public class GRPCRunnableAsyncProcessor extends RunnableCamelAsyncProcessor<Meta
     protected Function<Exchange, String> getInputFromExchange() {
         return (exchange) -> {
             XTaskModel body = exchange.getMessage().getBody(XTaskModel.class);
-            String arg = body.getGrpc_step().getInput();
+            String arg = body.getCurrentTask().getInput();
             return arg;
         };
     }
@@ -65,7 +66,7 @@ public class GRPCRunnableAsyncProcessor extends RunnableCamelAsyncProcessor<Meta
     protected BiConsumer<Exchange, Throwable> getOnErrorCamelCallback() {
         return (exchange, t) -> {
             XTaskModel body = exchange.getMessage().getBody(XTaskModel.class);
-            body.getGrpc_step().setErrorMessage(getGRPCErrorMessage(t));
+            body.getCurrentTask().setErrorMessage(getGRPCErrorMessage(t));
             exchange.getMessage().setBody(body);
             exchange.setException(t);
         };
@@ -92,7 +93,9 @@ public class GRPCRunnableAsyncProcessor extends RunnableCamelAsyncProcessor<Meta
     public static XTaskModel setBody(Exchange exchange, Users.UsersWithGroupsDto grpcResult) {
         XTaskModel body = exchange.getMessage().getBody(XTaskModel.class);
         List<ModelUser> modelUserList = grpcResult.getUsersWithGroupsList().stream().map(GetUserModel::fromDto).toList();
-        body.getGrpc_step().setOutput(modelUserList);
+        var  currentTask = (Task<String, String, List<ModelUser>>)body.getCurrentTask();
+        currentTask.setOutput(modelUserList);
+
         return body;
     }
 

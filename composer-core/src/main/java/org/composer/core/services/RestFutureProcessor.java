@@ -5,9 +5,11 @@ import org.composer.core.model.ModelUser;
 import org.composer.core.converters.RestModelUserDto;
 import org.composer.core.model.XTaskModel;
 import org.apache.camel.Exchange;
+import org.composer.core.utils.Task;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -31,7 +33,7 @@ public class RestFutureProcessor extends AbstractFutureAsyncProcessor<Consumer<H
 
     @Override
     protected String getInputFromExchange(Exchange exchange) {
-        return exchange.getMessage().getBody(XTaskModel.class).getRest_step().getInput();
+        return exchange.getMessage().getBody(XTaskModel.class).getCurrentTask().getInput();
     }
 
     @Override
@@ -69,13 +71,14 @@ public class RestFutureProcessor extends AbstractFutureAsyncProcessor<Consumer<H
 
     public static XTaskModel setBody(Exchange exchange, List<ModelUser> restResult){
         XTaskModel body =  exchange.getMessage().getBody(XTaskModel.class);
-        body.getRest_step().setOutput(restResult);
+        var  currentTask = (Task<String, String, List<ModelUser>>)body.getCurrentTask();
+        currentTask.setOutput(restResult);
         return body;
     }
 
     public static XTaskModel setError(Exchange exchange, String errorMsg){
         XTaskModel body =  exchange.getMessage().getBody(XTaskModel.class);
-        body.getRest_step().setErrorMessage(errorMsg);
+        body.getCurrentTask().setErrorMessage(errorMsg);
         return body;
     }
 }

@@ -2,6 +2,10 @@ package org.composer.core.routes;
 
 
 import org.composer.core.model.ModelUser;
+import org.composer.core.model.Specs;
+import org.composer.core.services.ISpecToModel;
+import org.composer.core.services.SpecToModel;
+import org.composer.core.stubs.UtilModelFromSpec;
 import users.Users;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
@@ -41,18 +45,18 @@ public class GRPCRouteTest extends CamelTestSupport{
     public boolean isUseAdviceWith() {
         return true;
     }
-
+    private  final ISpecToModel specToModel= new SpecToModel();
 
 @Override
 protected RouteBuilder createRouteBuilder() throws Exception{
-        return new BusinessProcessXRoute(businessProcessXService, reactorSinkService);
+        return new BusinessProcessXRoute(businessProcessXService, reactorSinkService, specToModel);
 }
 
 
 
     @Test
     public void gRPCRouteTest() throws Exception {
-
+        Specs specs = Specs.builder().specifications("Spec_1").taskId("ABCD").build();
         RouteDefinition route = context.getRouteDefinition("X_GRPC_step");
         Users.Group group = Users.Group.newBuilder().setGroupId("12345")
                 .setGroupname("Physics").setUserId("ABC").build();
@@ -76,38 +80,83 @@ protected RouteBuilder createRouteBuilder() throws Exception{
         doAnswer((Answer<Void>) invocation->{
             Exchange exchange = invocation.getArgument(0);
             XTaskModel body =  exchange.getMessage().getBody(XTaskModel.class);
-            assertEquals(body.getGrpc_step().getOutput(),grpcResponse);
+            assertEquals(body.getCurrentTask().getOutput(),grpcResponse);
+            var  currentTask = (Task<String, String, List<ModelUser>>)body.getCurrentTask();
+            assertEquals(currentTask.getOutput().get(0).getUserId(),grpcResponse.getUsersWithGroups(0).getUserId());
 
             return null;
         }).when(reactorSinkService).notifyAboutGRPCStep(any());
 
         MockEndpoint mock = getMockEndpoint("mock:finishGRPCRoute");
 
-        String taskId="abcdef";
-        String grpcInput= "Ann";
-
-        String amqpInput = "John";
-        String restInput = "Mark";
-        XTaskModel model = XTaskModel.builder()
-                .task_id(taskId)
-                .rest_step(Task.<String, String, List<ModelUser>>builder().input(restInput).build())
-                .amqp_step(Task.<String, String, List<ModelUser>>builder().input(amqpInput).build())
-                .grpc_step(Task.<String, String, List<ModelUser>>builder().input(grpcInput).build())
-                .build();
+        XTaskModel model = UtilModelFromSpec.getModelFromSpecs(specs,"X_GRPC_step");
+        model.setNextTask();
 
         mock.setExpectedMessageCount(1);
         template.sendBody("direct:X_GRPC_step",model );
         mock.assertIsSatisfied();
         Message message = mock.getExchanges().get(0).getMessage();
         XTaskModel modelOut = message.getBody(XTaskModel.class);
-        assertEquals(modelOut.getGrpc_step().getOutput().get(0).getUserId(),userViewDto.getUserId());
-        assertEquals(modelOut.getGrpc_step().getOutput().get(0).getUsername(),userViewDto.getUsername());
-        assertEquals(modelOut.getGrpc_step().getOutput().get(0).getGroups().get(0).getGroupId(),group.getGroupId());
-        assertEquals(modelOut.getGrpc_step().getOutput().get(0).getGroups().get(0).getUserId(),group.getUserId());
+        var  currentTask = (Task<String, String, List<ModelUser>>)modelOut.getCurrentTask();
+        assertEquals(currentTask.getOutput().get(0).getUserId(),userViewDto.getUserId());
+        assertEquals(currentTask.getOutput().get(0).getUsername(),userViewDto.getUsername());
+        assertEquals(currentTask.getOutput().get(0).getGroups().get(0).getGroupId(),group.getGroupId());
+        assertEquals(currentTask.getOutput().get(0).getGroups().get(0).getUserId(),group.getUserId());
 
 
     }
 
+    @Test
+    public void gRPCRouteWithErrorTest() throws Exception {
+        String errorMsg = "Ooops!";
+        Specs specs = Specs.builder().specifications("Spec_1").taskId("ABCD").build();
+        RouteDefinition route = context.getRouteDefinition("X_GRPC_step");
+        Users.Group group = Users.Group.newBuilder().setGroupId("12345")
+                .setGroupname("Physics").setUserId("ABC").build();
+        Users.UserViewDto userViewDto = Users.UserViewDto.newBuilder()
+                .setUserId("ABC").setUsername("Sasha")
+                .setUserage(30).addGroups(group).build();
+        Users.UsersWithGroupsDto grpcResponse = Users.UsersWithGroupsDto.newBuilder()
+                .addAllUsersWithGroups(List.of(userViewDto)).build();
+
+        adviceWith(route, context, new AdviceWithRouteBuilder() {
+            @Override
+            public void configure() throws Exception {
+                weaveById("GRPC_Async_Processor").replace().setBody(exchange->{
+                    return GRPCRunnableAsyncProcessor.setBody(exchange,grpcResponse);
+                });
+                weaveAddLast().to("mock:finishGRPCRoute");
+            }
+        });
+        context.start();
+
+        doAnswer((Answer<Void>) invocation->{
+            Exchange exchange = invocation.getArgument(0);
+            XTaskModel body =  exchange.getMessage().getBody(XTaskModel.class);
+            assertEquals(body.getCurrentTask().getOutput(),grpcResponse);
+            var  currentTask = (Task<String, String, List<ModelUser>>)body.getCurrentTask();
+            assertEquals(currentTask.getOutput().get(0).getUserId(),grpcResponse.getUsersWithGroups(0).getUserId());
+
+            return null;
+        }).when(reactorSinkService).notifyAboutGRPCStep(any());
+
+        MockEndpoint mock = getMockEndpoint("mock:finishGRPCRoute");
+
+        XTaskModel model = UtilModelFromSpec.getModelFromSpecs(specs,"X_GRPC_step");
+        model.setNextTask();
+        model.getCurrentTask().setErrorMessage(errorMsg);
+        mock.setExpectedMessageCount(1);
+        template.sendBody("direct:X_GRPC_step",model );
+        mock.assertIsSatisfied();
+        Message message = mock.getExchanges().get(0).getMessage();
+        XTaskModel modelOut = message.getBody(XTaskModel.class);
+        var  currentTask = (Task<String, String, List<ModelUser>>)modelOut.getCurrentTask();
+
+        assertEquals(currentTask.getErrorMessage(),errorMsg);
+
+
+
+    }
 
 
 }

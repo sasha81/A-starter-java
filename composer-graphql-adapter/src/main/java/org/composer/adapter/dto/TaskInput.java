@@ -13,7 +13,6 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TaskInput implements Serializable {
-    private String rest_input;
-    private String amqp_input;
-    private String grpc_input;
+    private String specifics;
+
 }

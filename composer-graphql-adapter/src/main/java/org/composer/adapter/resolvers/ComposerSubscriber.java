@@ -5,7 +5,7 @@ import org.composer.adapter.dto.TaskInput;
 import org.composer.adapter.services.IFluxProcessingService;
 import org.composer.adapter.services.ISendToCamelService;
 import org.composer.core.model.FluxMessageContainer;
-import org.composer.core.model.XTaskModel;
+import org.composer.core.model.Specs;
 import org.composer.core.utils.ISinkMapObjectService;
 import org.reactivestreams.Publisher;
 import org.springframework.graphql.data.method.annotation.Argument;
@@ -17,13 +17,15 @@ import java.io.IOException;
 import java.util.List;
 
 @Controller
-public class XTaskSubscriber {
+public class ComposerSubscriber {
 
     private IFluxProcessingService fluxProcessingService;
     private ISendToCamelService sendToCamelService;
     private ISinkMapObjectService sinkMapService;
 
-    public XTaskSubscriber(ISinkMapObjectService sinkMapService, ISendToCamelService sendToCamelService, IFluxProcessingService fluxProcessingService) {
+
+
+    public ComposerSubscriber(ISinkMapObjectService sinkMapService, ISendToCamelService sendToCamelService, IFluxProcessingService fluxProcessingService) {
        this.sinkMapService = sinkMapService;
         this.sendToCamelService = sendToCamelService;
         this.fluxProcessingService = fluxProcessingService;
@@ -43,15 +45,15 @@ public class XTaskSubscriber {
         return Flux.fromStream(nums.stream());
     }
 
-   @SubscriptionMapping("newXtask")
-    public Flux<TaskOutput> newXtask(@Argument TaskInput xTaskDto ) throws IOException {
+   @SubscriptionMapping("compareUsers")
+    public Flux<TaskOutput> compareUsers(@Argument TaskInput input ) throws IOException {
         String taskId = fluxProcessingService.getTaskId();
-        XTaskModel model = fluxProcessingService.getXModelFromDto(xTaskDto, taskId);
 
         Flux<FluxMessageContainer<?>> rawFlux = sinkMapService.getNewFluxWithId(taskId);
         Flux<TaskOutput> outFlux = fluxProcessingService.postProcessContainerFlux(rawFlux,taskId,()->sinkMapService.deleteMap(taskId) );
 
-                this.sendToCamelService.sendBodyToCamel("direct:new_X_task",model);
+                this.sendToCamelService.sendBodyToCamel("direct:new_Compare_task", Specs
+                        .builder().specifications(input.getSpecifics()).taskId(taskId).build());
 
             return outFlux;
 

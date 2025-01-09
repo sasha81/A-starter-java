@@ -2,8 +2,10 @@ package org.composer.core.services;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.composer.core.converters.GetUserModel;
 import org.composer.core.model.ModelUser;
 import org.composer.core.model.XTaskModel;
+import org.composer.core.utils.Task;
 import org.example.common.utils.AmqpMessageCustom;
 import lombok.Builder;
 import org.apache.camel.AsyncCallback;
@@ -15,6 +17,8 @@ import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 @Builder
@@ -57,7 +61,10 @@ public class AMQPAsyncProcessor implements AsyncProcessor {
             XTaskModel body =  exchange.getMessage().getBody( XTaskModel.class);
             try {
                 ModelUser[] amqpResult = objectMapper.readValue(message.getBody(),ModelUser[].class);
-                body.getAmqp_step().setOutput(List.of(amqpResult));
+
+                List<ModelUser> list = Stream.of(amqpResult).collect(Collectors.toList());
+                var  currentTask = (Task<String, String, List<ModelUser>>)body.getCurrentTask();
+                currentTask.setOutput(list);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

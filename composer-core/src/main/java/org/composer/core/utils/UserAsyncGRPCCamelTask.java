@@ -29,7 +29,7 @@ public class UserAsyncGRPCCamelTask extends GRPCAsyncCamelTask<String, Users.Use
     @Override
     protected String getInputFromExchange(Exchange exchange) {
         XTaskModel body =  this.exchange.getMessage().getBody(XTaskModel.class);
-        String arg = body.getGrpc_step().getInput();
+        String arg = body.getCurrentTask().getInput();
         return arg;
     }
     @Override

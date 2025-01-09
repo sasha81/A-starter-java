@@ -2,17 +2,15 @@ package org.composer.core.routes;
 
 
 
+import org.composer.core.model.Specs;
 import org.composer.core.model.XTaskModel;
-import org.composer.core.services.AMQPFutureProcessor;
-import org.composer.core.services.IReactorSinkService;
-import org.composer.core.services.RestFutureProcessor;
+import org.composer.core.services.*;
 import org.composer.core.utils.ThreadPoolShutdownStrategy;
 import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.apache.camel.CamelContext;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.builder.ThreadPoolBuilder;
-import org.composer.core.services.GRPCRunnableAsyncProcessor;
 import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,13 +44,14 @@ public class BusinessProcessXRoute extends RouteBuilder {
     private final BusinessProcessXService businessProcessXService;
 
     private final IReactorSinkService reactorSinkService;
-
+    private  final ISpecToModel specToModel;
     private final int DELAY = 0;
 
-    public BusinessProcessXRoute(BusinessProcessXService businessProcessXService, IReactorSinkService reactorSinkService) {
+    public BusinessProcessXRoute(BusinessProcessXService businessProcessXService, IReactorSinkService reactorSinkService, ISpecToModel specToModel) {
         this.businessProcessXService = businessProcessXService;
 
         this.reactorSinkService = reactorSinkService;
+        this.specToModel = specToModel;
     }
 
 
@@ -70,17 +69,22 @@ public class BusinessProcessXRoute extends RouteBuilder {
 
         context.setShutdownStrategy(new ThreadPoolShutdownStrategy(context, executorService));
 
-        from("direct:new_X_task")
-                .log(LoggingLevel.INFO, "Init a new X task for the input: ${body}")
+        from("direct:new_Compare_task")
+                .log(LoggingLevel.INFO, "Init a new Compare task for the input: ${body}")
                 .log(LoggingLevel.INFO, "Current thread: " + Thread.currentThread().getId())
                 .process(exchange -> {
-                    XTaskModel xTask = exchange.getMessage().getBody(XTaskModel.class);
-                    exchange.getMessage().setHeader("id", xTask.getTask_id());
+                    Specs spec = exchange.getMessage().getBody( Specs.class);
+                    XTaskModel task = this.specToModel.getModelFromSpecs(spec);
+                    exchange.getMessage().setHeader("id", spec.getTaskId());
+                    task.setNextTask();
+                    exchange.getMessage().setBody(task);
+                    String executor = task.getCurrentTask().getExecutor();
+                    exchange.getMessage().setHeader("executor",executor);
                 })
 
-                .log(LoggingLevel.INFO, "Id: ${header.id}")
+                .log(LoggingLevel.INFO, "executor: ${header.executor}")
                 .log(LoggingLevel.INFO, "Current thread: " + Thread.currentThread().getId())
-                .to("direct:X_GRPC_step");
+                .toD("direct:${header.executor}");
 
 
         from("direct:X_Rest_step").id("X_Rest_step")
@@ -88,8 +92,13 @@ public class BusinessProcessXRoute extends RouteBuilder {
                 .setBody(body())
                 .process(new RestFutureProcessor(webClient, restUrl)).id("Rest_Async_Processor")
                 .bean(reactorSinkService, "notifyAboutRestStep")
-                .log("ID: ${header.id}")
-                .to("direct:X_AMQP_step")
+                .process(exchange -> {
+                    XTaskModel model = exchange.getMessage().getBody( XTaskModel.class);
+                    model.setNextTask();
+                    exchange.getMessage().setHeader("executor",model.getCurrentTask().getExecutor());
+                })
+                .log("executor: ${header.executor}")
+                .toD("direct:${header.executor}")
         ;
 
 
@@ -104,7 +113,13 @@ public class BusinessProcessXRoute extends RouteBuilder {
         from("direct:X_AMQP_step").id("X_AMQP_step")
                 .process(new AMQPFutureProcessor(rabbitTemplate,exchangeName,nestRoutingkey)).id("AMQP_Async_Processor")
                 .bean(reactorSinkService, "notifyAboutAMQPStep")
-                .to("direct:X_finish")
+                .process(exchange -> {
+                    XTaskModel model = exchange.getMessage().getBody( XTaskModel.class);
+                    model.setNextTask();
+                    exchange.getMessage().setHeader("executor",model.getCurrentTask().getExecutor());
+                })
+                .log("executor: ${header.executor}")
+                .toD("direct:${header.executor}")
         ;
 
 
@@ -112,7 +127,13 @@ public class BusinessProcessXRoute extends RouteBuilder {
                 .log(LoggingLevel.INFO, "Current thread: " + Thread.currentThread().getId())
                 .process(new GRPCRunnableAsyncProcessor(executorService, nestStub)).id("GRPC_Async_Processor")
                 .bean(reactorSinkService, "notifyAboutGRPCStep")
-                .to("direct:X_Rest_step")
+                .process(exchange -> {
+                    XTaskModel model = exchange.getMessage().getBody( XTaskModel.class);
+                    model.setNextTask();
+                    exchange.getMessage().setHeader("executor",model.getCurrentTask().getExecutor());
+                })
+                .log("ID: ${header.id}")
+                .toD("direct:${header.executor}")
         ;
 
         from("direct:close")

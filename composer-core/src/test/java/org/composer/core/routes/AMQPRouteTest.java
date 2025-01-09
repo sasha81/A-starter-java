@@ -12,10 +12,14 @@ import org.composer.core.converters.AMQPModelGroupDto;
 import org.composer.core.converters.AMQPModelUserDto;
 import org.composer.core.converters.GetUserModel;
 import org.composer.core.model.ModelUser;
+import org.composer.core.model.Specs;
 import org.composer.core.model.XTaskModel;
 import org.composer.core.services.AMQPFutureProcessor;
+import org.composer.core.services.ISpecToModel;
 import org.composer.core.services.ReactorSinkService;
+import org.composer.core.services.SpecToModel;
 import org.composer.core.stubs.SyncProcessorStub;
+import org.composer.core.stubs.UtilModelFromSpec;
 import org.composer.core.utils.Task;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,6 +50,9 @@ public class AMQPRouteTest extends CamelTestSupport {
     @Spy
     Processor exceptionProcessor = new SyncProcessorStub();
 
+
+
+    private  final ISpecToModel specToModel= new SpecToModel();
     @Override
     public boolean isUseAdviceWith() {
         return true;
@@ -54,15 +61,16 @@ public class AMQPRouteTest extends CamelTestSupport {
 
     @Override
     protected RouteBuilder createRouteBuilder() throws Exception{
-        return new BusinessProcessXRoute(businessProcessXService, reactorSinkService);
+        return new BusinessProcessXRoute(businessProcessXService, reactorSinkService, specToModel);
     }
 
 
     @Test
     public void aMQPRouteTest() throws Exception{
 
+        Specs specs = Specs.builder().specifications("Spec_1").taskId("ABCD").build();
+
         RouteDefinition route = context.getRouteDefinition("X_AMQP_step");
-        String amqpInput = "buddy!";
 
         AMQPModelGroupDto amqpGroupDto = AMQPModelGroupDto.builder().groupId("A").groupName("B").userId("ABCD").build();
         AMQPModelUserDto amqpDto = AMQPModelUserDto.builder().groups(List.of(amqpGroupDto)).name("A").age(15).userId("ABCD").build();
@@ -71,7 +79,8 @@ public class AMQPRouteTest extends CamelTestSupport {
             public void configure() throws Exception {
                 weaveById("AMQP_Async_Processor").replace().setBody(exchange->{
 
-                    return AMQPFutureProcessor.setBody(exchange,new  AMQPModelUserDto[] {amqpDto});
+                    XTaskModel model = AMQPFutureProcessor.setBody(exchange,new  AMQPModelUserDto[] {amqpDto});
+                    return model;
                 });
                 weaveAddLast().to("mock:finishAMQPRoute");
             }
@@ -81,24 +90,17 @@ public class AMQPRouteTest extends CamelTestSupport {
         doAnswer((Answer<Void>) invocation->{
             Exchange exchange = invocation.getArgument(0);
             XTaskModel body =  exchange.getMessage().getBody(XTaskModel.class);
-            assertEquals(body.getAmqp_step().getOutput(),amqpDto);
+            var  currentTask = (Task<String, String, List<ModelUser>>)body.getCurrentTask();
+            assertEquals(currentTask.getOutput().get(0).getUserId(),amqpDto.getUserId());
 
             return null;
         }).when(reactorSinkService).notifyAboutAMQPStep(any());
 
 
         MockEndpoint mock = getMockEndpoint("mock:finishAMQPRoute");
-        String taskId="abcdef";
-        String grpcInput= "Ann";
 
-
-        String restInput = "Mark";
-        XTaskModel model = XTaskModel.builder()
-                .task_id(taskId)
-                .rest_step(Task.<String, String, List<ModelUser>>builder().input(restInput).build())
-                .amqp_step(Task.<String, String, List<ModelUser>>builder().input(amqpInput).build())
-                .grpc_step(Task.<String, String, List<ModelUser>>builder().input(grpcInput).build())
-                .build();
+        XTaskModel model = UtilModelFromSpec.getModelFromSpecs(specs,"X_AMQP_step");
+        model.setNextTask();
 
         mock.setExpectedMessageCount(1);
         template.sendBody("direct:X_AMQP_step",model );
@@ -107,123 +109,59 @@ public class AMQPRouteTest extends CamelTestSupport {
         XTaskModel modelOut = message.getBody(XTaskModel.class);
 
         verify(reactorSinkService).notifyAboutAMQPStep(any());
-        assertEquals(modelOut.getAmqp_step().getOutput(),List.of( GetUserModel.fromDto(amqpDto)));
+        var  currentTask = (Task<String, String, List<ModelUser>>)modelOut.getCurrentTask();
+        assertEquals(currentTask.getOutput(),List.of( GetUserModel.fromDto(amqpDto)));
 
     }
-
     @Test
-    /*
-    This test tests if an AMQP processor throws an exception, the exception first get caught by the onException
-    clause, then propagates down the original route.
-     */
-    public void aMQPRouteErrorTest() throws Exception{
+    public void aMQPRouteTestWithError() throws Exception{
+        String errorMsg = "Ooops!";
+        Specs specs = Specs.builder().specifications("Spec_1").taskId("ABCD").build();
+
         RouteDefinition route = context.getRouteDefinition("X_AMQP_step");
-        String amqpInput = "buddy!";
-        String amqpOutput = "Hello "+amqpInput+"!";
-        String exceptionMsg = "Ooops!";
-        RuntimeException exception = new RuntimeException(exceptionMsg);
+
+        AMQPModelGroupDto amqpGroupDto = AMQPModelGroupDto.builder().groupId("A").groupName("B").userId("ABCD").build();
+        AMQPModelUserDto amqpDto = AMQPModelUserDto.builder().groups(List.of(amqpGroupDto)).name("A").age(15).userId("ABCD").build();
         adviceWith(route, context, new AdviceWithRouteBuilder() {
             @Override
             public void configure() throws Exception {
-                weaveById("AMQP_Async_Processor").replace().process(exchange -> {
-                            throw exception;
-                        });
-                weaveById("X_exception_processor").replace().process(exceptionProcessor);
+                weaveById("AMQP_Async_Processor").replace().setBody(exchange->{
 
-
+                    XTaskModel model = AMQPFutureProcessor.setBody(exchange,new  AMQPModelUserDto[] {amqpDto});
+                    return model;
+                });
                 weaveAddLast().to("mock:finishAMQPRoute");
             }
         });
-
         context.start();
+
         doAnswer((Answer<Void>) invocation->{
             Exchange exchange = invocation.getArgument(0);
             XTaskModel body =  exchange.getMessage().getBody(XTaskModel.class);
-            assertNull(body.getAmqp_step().getOutput());
+            var  currentTask = (Task<String, String, List<ModelUser>>)body.getCurrentTask();
+            assertEquals(currentTask.getOutput().get(0).getUserId(),amqpDto.getUserId());
 
             return null;
-        }).when(reactorSinkService).notifyAboutAMQPStep(any(Exchange.class));
+        }).when(reactorSinkService).notifyAboutAMQPStep(any());
+
 
         MockEndpoint mock = getMockEndpoint("mock:finishAMQPRoute");
-        String taskId="abcdef";
-        String grpcInput= "Ann";
 
-        String restInput = "Mark";
-        XTaskModel model = XTaskModel.builder()
-                .task_id(taskId)
-                .rest_step(Task.<String, String, List<ModelUser>>builder().input(restInput).build())
-                .amqp_step(Task.<String, String, List<ModelUser>>builder().input(amqpInput).build())
-                .grpc_step(Task.<String, String, List<ModelUser>>builder().input(grpcInput).build())
-                .build();
-
+        XTaskModel model = UtilModelFromSpec.getModelFromSpecs(specs,"X_AMQP_step");
+        model.setNextTask();
+        model.getCurrentTask().setErrorMessage(errorMsg);
         mock.setExpectedMessageCount(1);
         template.sendBody("direct:X_AMQP_step",model );
         mock.assertIsSatisfied();
-
-        verify(reactorSinkService).notifyAboutAMQPStep(any());
-
-        verify(exceptionProcessor).process(any(Exchange.class));
-    }
-    @Test
-    /*
-    This test tests if an AMQP processor throws an exception, the exception first get caught by the onException
-    clause; then the exchange continues down the original route.
-
-    Next, another exception is thrown as we call a reactorSinkService.notifyAboutAMQPStep(any()) method.
-
-    So, our exception processor should be called twice.
-     */
-    public void aMQPRoute2ErrorTest() throws Exception{
-        RouteDefinition route = context.getRouteDefinition("X_AMQP_step");
-        String amqpInput = "buddy!";
-
-        String exceptionMsg = "Ooops!";
-        RuntimeException exception = new RuntimeException(exceptionMsg);
-        adviceWith(route, context, new AdviceWithRouteBuilder() {
-            @Override
-            public void configure() throws Exception {
-                weaveById("AMQP_Async_Processor").replace().process(exchange -> {
-                    throw exception;
-                });
-                weaveById("X_exception_processor").replace().process(exceptionProcessor);
-
-
-                weaveAddLast().to("mock:finishAMQPRoute");
-            }
-        });
-
-        context.start();
-        doAnswer((Answer<Void>) invocation->{
-            Exchange exchange = invocation.getArgument(0);
-            XTaskModel body =  exchange.getMessage().getBody(XTaskModel.class);
-            assertNull(body.getAmqp_step().getOutput());
-            throw new RuntimeException();
-
-        }).when(reactorSinkService).notifyAboutAMQPStep(any(Exchange.class));
-
-        MockEndpoint mock = getMockEndpoint("mock:finishAMQPRoute");
-        String taskId="abcdef";
-        String grpcInput= "Ann";
-        String grpcOutput= "Hello "+grpcInput;
-
-        String restInput = "Mark";
-        XTaskModel model = XTaskModel.builder()
-                .task_id(taskId)
-                .rest_step(Task.<String, String, List<ModelUser>>builder().input(restInput).build())
-                .amqp_step(Task.<String, String, List<ModelUser>>builder().input(amqpInput).build())
-                .grpc_step(Task.<String, String, List<ModelUser>>builder().input(grpcInput).build())
-                .build();
-
-        mock.setExpectedMessageCount(1);
-        template.sendBody("direct:X_AMQP_step",model );
-        mock.assertIsSatisfied();
-        Exchange outExchange  = mock.getExchanges().get(0);
         Message message = mock.getExchanges().get(0).getMessage();
         XTaskModel modelOut = message.getBody(XTaskModel.class);
-        verify(reactorSinkService).notifyAboutAMQPStep(any());
 
-        verify(exceptionProcessor,times(2)).process(any(Exchange.class));
+        verify(reactorSinkService).notifyAboutAMQPStep(any());
+        var  currentTask = (Task<String, String, List<ModelUser>>)modelOut.getCurrentTask();
+        assertEquals(currentTask.getErrorMessage(),errorMsg);
+
     }
+
 
 
 }

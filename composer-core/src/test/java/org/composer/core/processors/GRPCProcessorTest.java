@@ -3,6 +3,9 @@ package org.composer.core.processors;
 
 
 import org.composer.core.model.ModelUser;
+import org.composer.core.model.Specs;
+import org.composer.core.services.ISpecToModel;
+import org.composer.core.services.SpecToModel;
 import users.Users;
 import users.UsersServiceGrpc;
 import org.apache.camel.AsyncCallback;
@@ -33,7 +36,7 @@ import static org.mockito.Mockito.doAnswer;
 @ExtendWith(MockitoExtension.class)
 public class GRPCProcessorTest {
 
-
+    private  final ISpecToModel specToModel= new SpecToModel();
     @Mock
     UsersServiceGrpc.UsersServiceStub nestStub;
 
@@ -41,6 +44,8 @@ public class GRPCProcessorTest {
 
     @Test
     public void gRPCProcessorTest(){
+        Specs specs = Specs.builder().specifications("Spec_1").taskId("ABCD").build();
+
         CountDownLatch latch = new CountDownLatch(1);
         CamelContext camelContext = new SimpleCamelContext();
         Users.Group group = Users.Group.newBuilder().setGroupId("12345")
@@ -67,12 +72,8 @@ public class GRPCProcessorTest {
 
         String amqpInput = "John";
         String restInput = "Mark";
-        XTaskModel model = XTaskModel.builder()
-                .task_id(taskId)
-                .rest_step(Task.<String, String, List<ModelUser>>builder().input(restInput).build())
-                .amqp_step(Task.<String, String, List<ModelUser>>builder().input(amqpInput).build())
-                .grpc_step(Task.<String, String, List<ModelUser>>builder().input(grpcInput).build())
-                .build();
+        XTaskModel model = specToModel.getModelFromSpecs(specs);
+        model.setNextTask();
 
         exchange.getMessage().setBody(model);
         grpcProcessor.process(exchange,asyncCamelCallback);
@@ -82,15 +83,17 @@ public class GRPCProcessorTest {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-        assertNotNull(modelOut.getGrpc_step().getOutput());
-        assertEquals(modelOut.getGrpc_step().getOutput().get(0).getUserId(),userViewDto.getUserId());
-        assertEquals(modelOut.getGrpc_step().getOutput().get(0).getUsername(),userViewDto.getUsername());
-        assertEquals(modelOut.getGrpc_step().getOutput().get(0).getGroups().get(0).getGroupId(),group.getGroupId());
-        assertEquals(modelOut.getGrpc_step().getOutput().get(0).getGroups().get(0).getUserId(),group.getUserId());
+        var  currentTask = (Task<String, String, List<ModelUser>>)modelOut.getCurrentTask();
+        assertNotNull(currentTask.getOutput());
+        assertEquals(currentTask.getOutput().get(0).getUserId(),userViewDto.getUserId());
+        assertEquals(currentTask.getOutput().get(0).getUsername(),userViewDto.getUsername());
+        assertEquals(currentTask.getOutput().get(0).getGroups().get(0).getGroupId(),group.getGroupId());
+        assertEquals(currentTask.getOutput().get(0).getGroups().get(0).getUserId(),group.getUserId());
     }
 
     @Test
     public void gRPCErrorProcessorTest(){
+        Specs specs = Specs.builder().specifications("Spec_1").taskId("ABCD").build();
         CountDownLatch latch = new CountDownLatch(1);
         CamelContext camelContext = new SimpleCamelContext();
 //        Users.Group group = Users.Group.newBuilder().setGroupId("12345")
@@ -118,12 +121,8 @@ public class GRPCProcessorTest {
 
         String amqpInput = "John";
         String restInput = "Mark";
-        XTaskModel model = XTaskModel.builder()
-                .task_id(taskId)
-                .rest_step(Task.<String, String, List<ModelUser>>builder().input(restInput).build())
-                .amqp_step(Task.<String, String, List<ModelUser>>builder().input(amqpInput).build())
-                .grpc_step(Task.<String, String, List<ModelUser>>builder().input(grpcInput).build())
-                .build();
+        XTaskModel model = specToModel.getModelFromSpecs(specs);
+        model.setNextTask();
 
         exchange.getMessage().setBody(model);
         grpcProcessor.process(exchange,asyncCamelCallback);
@@ -134,7 +133,7 @@ public class GRPCProcessorTest {
             throw new RuntimeException(e);
         }
         assertNotNull(exchange.getException());
-        assertNull(modelOut.getGrpc_step().getOutput());
+        assertNull(modelOut.getCurrentTask().getOutput());
         assertEquals(exchange.getException().getMessage(),errorMsg);
     }
 

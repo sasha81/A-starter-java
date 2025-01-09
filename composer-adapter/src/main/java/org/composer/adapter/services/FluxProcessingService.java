@@ -1,16 +1,13 @@
 package org.composer.adapter.services;
 
 import org.composer.adapter.dto.OutputDto;
-import org.composer.adapter.dto.XTaskDto;
-import org.composer.core.model.ModelUser;
 import org.composer.core.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.composer.core.utils.Task;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
-import java.util.List;
+
 import java.util.UUID;
 
 @Service
@@ -20,14 +17,7 @@ public class FluxProcessingService {
         return UUID.randomUUID().toString();
     }
 
-    public XTaskModel getXModelFromDto(XTaskDto dto, String taskId){
-        return XTaskModel.builder()
-                .task_id(taskId)
-                .rest_step(Task.<String, String, List<ModelUser>>builder().input(dto.getRest_input()).build())
-                .amqp_step(Task.<String, String, List<ModelUser>>builder().input(dto.getAmqp_input()).build())
-                .grpc_step(Task.<String, String, List<ModelUser>>builder().input(dto.getGrpc_input()).build())
-                .build();
-    }
+
     public Flux<ServerSentEvent<OutputDto>> postProcessContainerFlux(Flux<FluxMessageContainer<?>> inFlux, String taskId, Runnable doOnCancel){
         Flux<ServerSentEvent<OutputDto>> outFlux = inFlux
                 .filter(msg-> msg.getTaskId().equals(taskId))
