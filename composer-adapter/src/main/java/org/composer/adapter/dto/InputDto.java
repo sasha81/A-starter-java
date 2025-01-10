@@ -12,7 +12,7 @@ import java.io.Serializable;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class XTaskDto implements Serializable {
+public class InputDto implements Serializable {
     private String rest_input;
     private String amqp_input;
     private String grpc_input;

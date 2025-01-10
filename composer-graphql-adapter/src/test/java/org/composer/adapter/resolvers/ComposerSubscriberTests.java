@@ -49,11 +49,11 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 
 @ExtendWith(MockitoExtension.class)
-public class XTaskSubscriberTests {
+public class ComposerSubscriberTests {
     private  SinkMapObjectServiceStub sinkMapObjectService= new SinkMapObjectServiceStub();
     private ISendToCamelService sendToCamelService= new SendToCamelServiceStub();
     private final FluxProcessingServiceStub fluxProcessingService = new FluxProcessingServiceStub();
-    private XTaskSubscriber xTaskSubscriber = new XTaskSubscriber(sinkMapObjectService,sendToCamelService,fluxProcessingService);
+    private ComposerSubscriber taskSubscriber = new ComposerSubscriber(sinkMapObjectService,sendToCamelService,fluxProcessingService);
 
     @Test
     void newXTask(){
@@ -79,7 +79,7 @@ public class XTaskSubscriberTests {
 
 
         try {
-            Flux<TaskOutput> result =  xTaskSubscriber.newXtask(xTaskDto);
+            Flux<TaskOutput> result =  taskSubscriber.compareUsers(xTaskDto);
             List<TaskOutput> outList =  result.collectList().block();
             assertEquals(outList.size(),msgs.length);
             assertEquals(outList.get(0).getStage(),ProcessStages.GRPC);
@@ -90,7 +90,7 @@ public class XTaskSubscriberTests {
     @Test
     void test(){
         String input = "AAA";
-        Flux<String> output = (Flux<String>) xTaskSubscriber.test(input);
+        Flux<String> output = (Flux<String>) taskSubscriber.test(input);
         List<String> outList =  output.collectList().block();
         assertEquals(outList.size(),3);
     }
@@ -98,7 +98,7 @@ public class XTaskSubscriberTests {
     @Test
     void greet(){
         String input = "AAA";
-        String output =  xTaskSubscriber.greet(input);
+        String output =  taskSubscriber.greet(input);
 
         assertTrue(output.contains(input));
     }

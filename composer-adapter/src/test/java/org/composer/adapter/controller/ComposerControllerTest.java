@@ -2,8 +2,9 @@ package org.composer.adapter.controller;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.composer.adapter.dto.InputDto;
 import org.composer.adapter.dto.OutputDto;
-import org.composer.adapter.dto.XTaskDto;
+
 import org.composer.adapter.services.FluxProcessingService;
 import org.composer.adapter.services.SendToCamelService;
 import org.composer.adapter.utils.CustomFluxUtils;
@@ -33,8 +34,8 @@ import java.util.concurrent.CompletableFuture;
 
 
 @WebMvcTest
-@ContextConfiguration(classes= {FluxController.class, SendToCamelService.class, SinkMapService.class})
-public class FluxControllerTest {
+@ContextConfiguration(classes= {ComposerController.class, SendToCamelService.class, SinkMapService.class})
+public class ComposerControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -54,8 +55,8 @@ public class FluxControllerTest {
     public void givenXTaskDto_whenCollectDataFromSources_thenReturnResponseStream() throws Exception {
         String amqpInput="amqpInput"; String restInput="restInput"; String grpcInput="grpcInput";
         String taskId = "ABCDEF";
-        String url = "/x-tasks/new-x-task";
-        XTaskDto xTaskDto = XTaskDto.builder()
+        String url = "/composerTasks/compareUsers";
+        InputDto xTaskDto = InputDto.builder()
                 .amqp_input(amqpInput).grpc_input(grpcInput).rest_input(restInput)
                 .build();
         FluxMessageContainer<String> AMQP_container = FluxMessageContainer.<String>builder()

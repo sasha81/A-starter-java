@@ -1,7 +1,7 @@
 package org.composer.adapter.services;
 
 import org.composer.adapter.dto.OutputDto;
-import org.composer.adapter.dto.XTaskDto;
+import org.composer.adapter.dto.InputDto;
 import org.composer.core.model.ModelUser;
 import org.composer.core.model.*;
 import org.slf4j.Logger;
@@ -20,7 +20,7 @@ public class FluxProcessingService {
         return UUID.randomUUID().toString();
     }
 
-    public XTaskModel getXModelFromDto(XTaskDto dto, String taskId){
+    public XTaskModel getXModelFromDto(InputDto dto, String taskId){
         return XTaskModel.builder()
                 .task_id(taskId)
                 .rest_step(Task.<String, String, List<ModelUser>>builder().input(dto.getRest_input()).build())

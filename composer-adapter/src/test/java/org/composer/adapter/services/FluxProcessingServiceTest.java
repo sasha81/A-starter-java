@@ -7,7 +7,7 @@ import org.composer.adapter.utils.CustomFluxUtils;
 import org.composer.core.model.FluxMessageContainer;
 import org.composer.core.model.ProcessStages;
 import org.composer.core.utils.SinkMapObjectService;
-import org.composer.core.utils.SinkMapService;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

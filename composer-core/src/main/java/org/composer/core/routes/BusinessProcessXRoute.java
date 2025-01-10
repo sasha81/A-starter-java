@@ -70,8 +70,8 @@ public class BusinessProcessXRoute extends RouteBuilder {
 
         context.setShutdownStrategy(new ThreadPoolShutdownStrategy(context, executorService));
 
-        from("direct:new_X_task")
-                .log(LoggingLevel.INFO, "Init a new X task for the input: ${body}")
+        from("direct:new_CompareUsers_task")
+                .log(LoggingLevel.INFO, "Init a new Compare task for the input: ${body}")
                 .log(LoggingLevel.INFO, "Current thread: " + Thread.currentThread().getId())
                 .process(exchange -> {
                     XTaskModel xTask = exchange.getMessage().getBody(XTaskModel.class);

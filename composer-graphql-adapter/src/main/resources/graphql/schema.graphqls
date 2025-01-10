@@ -3,7 +3,7 @@ type Query {
 }
 
 type Subscription {
-    newXtask(xTaskDto: TaskInput) : TaskOutput
+    compareUsers(inputDto: TaskInput) : TaskOutput
     test(num: String): String
 }
 

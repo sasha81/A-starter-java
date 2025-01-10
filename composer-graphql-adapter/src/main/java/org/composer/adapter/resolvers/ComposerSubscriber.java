@@ -17,13 +17,13 @@ import java.io.IOException;
 import java.util.List;
 
 @Controller
-public class XTaskSubscriber {
+public class ComposerSubscriber {
 
     private IFluxProcessingService fluxProcessingService;
     private ISendToCamelService sendToCamelService;
     private ISinkMapObjectService sinkMapService;
 
-    public XTaskSubscriber(ISinkMapObjectService sinkMapService, ISendToCamelService sendToCamelService, IFluxProcessingService fluxProcessingService) {
+    public ComposerSubscriber(ISinkMapObjectService sinkMapService, ISendToCamelService sendToCamelService, IFluxProcessingService fluxProcessingService) {
        this.sinkMapService = sinkMapService;
         this.sendToCamelService = sendToCamelService;
         this.fluxProcessingService = fluxProcessingService;
@@ -43,15 +43,15 @@ public class XTaskSubscriber {
         return Flux.fromStream(nums.stream());
     }
 
-   @SubscriptionMapping("newXtask")
-    public Flux<TaskOutput> newXtask(@Argument TaskInput xTaskDto ) throws IOException {
+   @SubscriptionMapping("compareUsers")
+    public Flux<TaskOutput> compareUsers(@Argument TaskInput inputDto ) throws IOException {
         String taskId = fluxProcessingService.getTaskId();
-        XTaskModel model = fluxProcessingService.getXModelFromDto(xTaskDto, taskId);
+        XTaskModel model = fluxProcessingService.getXModelFromDto(inputDto, taskId);
 
         Flux<FluxMessageContainer<?>> rawFlux = sinkMapService.getNewFluxWithId(taskId);
         Flux<TaskOutput> outFlux = fluxProcessingService.postProcessContainerFlux(rawFlux,taskId,()->sinkMapService.deleteMap(taskId) );
 
-                this.sendToCamelService.sendBodyToCamel("direct:new_X_task",model);
+                this.sendToCamelService.sendBodyToCamel("direct:new_CompareUsers_task",model);
 
             return outFlux;
 
