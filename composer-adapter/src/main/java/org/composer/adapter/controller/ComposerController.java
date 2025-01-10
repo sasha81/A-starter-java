@@ -36,7 +36,7 @@ public class ComposerController {
         Flux<FluxMessageContainer<?>> rawFlux = sinkMapService.getNewFluxWithId(taskId);
         Flux<ServerSentEvent<OutputDto>> outFlux = fluxProcessingService.postProcessContainerFlux(rawFlux,taskId,()->sinkMapService.deleteMap(taskId) );
 
-        this.sendToCamelService.sendBodyToCamel("direct:new_Compare_task", Specs
+        this.sendToCamelService.sendBodyToCamel("direct:new_CompareUsers_task", Specs
                 .builder().specifications(input.getSpecifics()).taskId(taskId).build());
         return outFlux;
 
