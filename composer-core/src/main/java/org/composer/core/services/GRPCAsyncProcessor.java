@@ -1,7 +1,7 @@
 package org.composer.core.services;
 
 import org.composer.core.converters.GetUserModel;
-import org.composer.core.model.XTaskModel;
+import org.composer.core.model.CompareUsersModel;
 import org.example.common.utils.TriConsumer;
 import io.grpc.Metadata;
 import io.grpc.stub.StreamObserver;
@@ -22,7 +22,7 @@ import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
 public class GRPCAsyncProcessor implements AsyncProcessor {
 
     private final BiConsumer<Exchange, Users.UsersWithGroupsDto> onNextCamelCallback = (exchange, users)->{
-        XTaskModel body =  exchange.getMessage().getBody(XTaskModel.class);
+        CompareUsersModel body =  exchange.getMessage().getBody(CompareUsersModel.class);
         body.getGrpc_step().setOutput(users.getUsersWithGroupsList().stream().map(GetUserModel::fromDto).toList());
         exchange.getIn().setBody(body);
     };
@@ -38,7 +38,7 @@ public class GRPCAsyncProcessor implements AsyncProcessor {
     };
 
     private final Function<Exchange,String> getInputFromExchange = (exchange)-> {
-        XTaskModel body =  exchange.getMessage().getBody(XTaskModel.class);
+        CompareUsersModel body =  exchange.getMessage().getBody(CompareUsersModel.class);
         String arg = body.getGrpc_step().getInput();
         return arg;
     };

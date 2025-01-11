@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.composer.core.converters.AMQPModelUserDto;
 import org.composer.core.converters.AMQPUserModelDtoContainer;
 import org.composer.core.converters.GetUserModel;
-import org.composer.core.model.XTaskModel;
+import org.composer.core.model.CompareUsersModel;
 import org.example.common.utils.AmqpMessageCustom;
 import org.apache.camel.Exchange;
 import org.slf4j.Logger;
@@ -44,7 +44,7 @@ public class AMQPFutureProcessor extends AbstractFutureAsyncProcessor<String,Str
     @Override
     protected String getInputFromExchange(Exchange exchange) {
 
-        XTaskModel body =  exchange.getMessage().getBody(XTaskModel.class);
+        CompareUsersModel body =  exchange.getMessage().getBody(CompareUsersModel.class);
         String arg = body.getAmqp_step().getInput();
         return arg;
     }
@@ -60,7 +60,7 @@ public class AMQPFutureProcessor extends AbstractFutureAsyncProcessor<String,Str
 
               try {
                   AMQPUserModelDtoContainer amqpResult = this.objectMapper.readValue(message.getBody(), AMQPUserModelDtoContainer.class);
-                  XTaskModel body = setBody(exchange, amqpResult.getResponse());
+                  CompareUsersModel body = setBody(exchange, amqpResult.getResponse());
                   exchange.getMessage().setBody(body);
               } catch (IOException e) {
                   throw new RuntimeException(e);
@@ -75,7 +75,7 @@ public class AMQPFutureProcessor extends AbstractFutureAsyncProcessor<String,Str
         return err->{
 //            XTaskModel body =  exchange.getMessage().getBody( XTaskModel.class);
 //            body.getAmqp_step().setOutput("DATA UNAVAILABLE");
-            XTaskModel body = setError(exchange, getErrorMessage(err));
+            CompareUsersModel body = setError(exchange, getErrorMessage(err));
             exchange.getMessage().setBody(body);
             exchange.setException(err);
             return exchange;
@@ -92,13 +92,13 @@ public class AMQPFutureProcessor extends AbstractFutureAsyncProcessor<String,Str
 //        }
     }
 
-    public static XTaskModel setError(Exchange exchange, String output){
-        XTaskModel body =  exchange.getMessage().getBody( XTaskModel.class);
+    public static CompareUsersModel setError(Exchange exchange, String output){
+        CompareUsersModel body =  exchange.getMessage().getBody( CompareUsersModel.class);
         body.getAmqp_step().setErrorMessage(output);
         return body;
     }
-    public static XTaskModel setBody(Exchange exchange, AMQPModelUserDto[]  output){
-        XTaskModel body =  exchange.getMessage().getBody( XTaskModel.class);
+    public static CompareUsersModel setBody(Exchange exchange, AMQPModelUserDto[]  output){
+        CompareUsersModel body =  exchange.getMessage().getBody( CompareUsersModel.class);
         body.getAmqp_step().setOutput(Stream.of(output).map(GetUserModel::fromDto).collect(Collectors.toList()));
         return body;
     }

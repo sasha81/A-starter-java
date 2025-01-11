@@ -5,7 +5,7 @@ import org.composer.adapter.dto.InputDto;
 import org.composer.adapter.services.FluxProcessingService;
 import org.composer.adapter.services.SendToCamelService;
 import org.composer.core.model.FluxMessageContainer;
-import org.composer.core.model.XTaskModel;
+import org.composer.core.model.CompareUsersModel;
 import org.composer.core.utils.ISinkMapObjectService;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
@@ -31,7 +31,7 @@ public class ComposerController {
     @PostMapping(path = "/compareUsers",  produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ServerSentEvent<OutputDto>> getEvents(@RequestBody InputDto inputDto) throws IOException {
         String taskId = fluxProcessingService.getTaskId();
-        XTaskModel model = fluxProcessingService.getXModelFromDto(inputDto, taskId);
+        CompareUsersModel model = fluxProcessingService.getXModelFromDto(inputDto, taskId);
 
         Flux<FluxMessageContainer<?>> rawFlux = sinkMapService.getNewFluxWithId(taskId);
         Flux<ServerSentEvent<OutputDto>> outFlux = fluxProcessingService.postProcessContainerFlux(rawFlux,taskId,()->sinkMapService.deleteMap(taskId) );

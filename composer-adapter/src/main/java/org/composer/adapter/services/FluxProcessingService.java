@@ -20,8 +20,8 @@ public class FluxProcessingService {
         return UUID.randomUUID().toString();
     }
 
-    public XTaskModel getXModelFromDto(InputDto dto, String taskId){
-        return XTaskModel.builder()
+    public CompareUsersModel getXModelFromDto(InputDto dto, String taskId){
+        return CompareUsersModel.builder()
                 .task_id(taskId)
                 .rest_step(Task.<String, String, List<ModelUser>>builder().input(dto.getRest_input()).build())
                 .amqp_step(Task.<String, String, List<ModelUser>>builder().input(dto.getAmqp_input()).build())

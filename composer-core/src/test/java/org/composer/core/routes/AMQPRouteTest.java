@@ -12,7 +12,7 @@ import org.composer.core.converters.AMQPModelGroupDto;
 import org.composer.core.converters.AMQPModelUserDto;
 import org.composer.core.converters.GetUserModel;
 import org.composer.core.model.ModelUser;
-import org.composer.core.model.XTaskModel;
+import org.composer.core.model.CompareUsersModel;
 import org.composer.core.services.AMQPFutureProcessor;
 import org.composer.core.services.ReactorSinkService;
 import org.composer.core.stubs.SyncProcessorStub;
@@ -80,7 +80,7 @@ public class AMQPRouteTest extends CamelTestSupport {
 
         doAnswer((Answer<Void>) invocation->{
             Exchange exchange = invocation.getArgument(0);
-            XTaskModel body =  exchange.getMessage().getBody(XTaskModel.class);
+            CompareUsersModel body =  exchange.getMessage().getBody(CompareUsersModel.class);
             assertEquals(body.getAmqp_step().getOutput(),amqpDto);
 
             return null;
@@ -93,7 +93,7 @@ public class AMQPRouteTest extends CamelTestSupport {
 
 
         String restInput = "Mark";
-        XTaskModel model = XTaskModel.builder()
+        CompareUsersModel model = CompareUsersModel.builder()
                 .task_id(taskId)
                 .rest_step(Task.<String, String, List<ModelUser>>builder().input(restInput).build())
                 .amqp_step(Task.<String, String, List<ModelUser>>builder().input(amqpInput).build())
@@ -104,7 +104,7 @@ public class AMQPRouteTest extends CamelTestSupport {
         template.sendBody("direct:X_AMQP_step",model );
         mock.assertIsSatisfied();
         Message message = mock.getExchanges().get(0).getMessage();
-        XTaskModel modelOut = message.getBody(XTaskModel.class);
+        CompareUsersModel modelOut = message.getBody(CompareUsersModel.class);
 
         verify(reactorSinkService).notifyAboutAMQPStep(any());
         assertEquals(modelOut.getAmqp_step().getOutput(),List.of( GetUserModel.fromDto(amqpDto)));
@@ -138,7 +138,7 @@ public class AMQPRouteTest extends CamelTestSupport {
         context.start();
         doAnswer((Answer<Void>) invocation->{
             Exchange exchange = invocation.getArgument(0);
-            XTaskModel body =  exchange.getMessage().getBody(XTaskModel.class);
+            CompareUsersModel body =  exchange.getMessage().getBody(CompareUsersModel.class);
             assertNull(body.getAmqp_step().getOutput());
 
             return null;
@@ -149,7 +149,7 @@ public class AMQPRouteTest extends CamelTestSupport {
         String grpcInput= "Ann";
 
         String restInput = "Mark";
-        XTaskModel model = XTaskModel.builder()
+        CompareUsersModel model = CompareUsersModel.builder()
                 .task_id(taskId)
                 .rest_step(Task.<String, String, List<ModelUser>>builder().input(restInput).build())
                 .amqp_step(Task.<String, String, List<ModelUser>>builder().input(amqpInput).build())
@@ -195,7 +195,7 @@ public class AMQPRouteTest extends CamelTestSupport {
         context.start();
         doAnswer((Answer<Void>) invocation->{
             Exchange exchange = invocation.getArgument(0);
-            XTaskModel body =  exchange.getMessage().getBody(XTaskModel.class);
+            CompareUsersModel body =  exchange.getMessage().getBody(CompareUsersModel.class);
             assertNull(body.getAmqp_step().getOutput());
             throw new RuntimeException();
 
@@ -207,7 +207,7 @@ public class AMQPRouteTest extends CamelTestSupport {
         String grpcOutput= "Hello "+grpcInput;
 
         String restInput = "Mark";
-        XTaskModel model = XTaskModel.builder()
+        CompareUsersModel model = CompareUsersModel.builder()
                 .task_id(taskId)
                 .rest_step(Task.<String, String, List<ModelUser>>builder().input(restInput).build())
                 .amqp_step(Task.<String, String, List<ModelUser>>builder().input(amqpInput).build())
@@ -219,7 +219,7 @@ public class AMQPRouteTest extends CamelTestSupport {
         mock.assertIsSatisfied();
         Exchange outExchange  = mock.getExchanges().get(0);
         Message message = mock.getExchanges().get(0).getMessage();
-        XTaskModel modelOut = message.getBody(XTaskModel.class);
+        CompareUsersModel modelOut = message.getBody(CompareUsersModel.class);
         verify(reactorSinkService).notifyAboutAMQPStep(any());
 
         verify(exceptionProcessor,times(2)).process(any(Exchange.class));

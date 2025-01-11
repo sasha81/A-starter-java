@@ -5,10 +5,9 @@ import org.apache.camel.AsyncProcessor;
 import org.apache.camel.Exchange;
 import org.composer.core.converters.GetUserModel;
 import org.composer.core.converters.RestModelUserDto;
-import org.composer.core.model.XTaskModel;
+import org.composer.core.model.CompareUsersModel;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
@@ -33,7 +32,7 @@ public class RestAsyncProcessor implements AsyncProcessor {
                 .retrieve()
                 .bodyToMono(RestModelUserDto[].class)
                 .toFuture().thenApply(message->{
-                    XTaskModel body =  exchange.getMessage().getBody(XTaskModel.class);
+                    CompareUsersModel body =  exchange.getMessage().getBody(CompareUsersModel.class);
 
             body.getRest_step().setOutput(Stream.of(message).map(GetUserModel::fromDto).toList());
             exchange.getIn().setBody(body);

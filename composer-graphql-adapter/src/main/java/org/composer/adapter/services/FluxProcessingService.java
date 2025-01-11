@@ -5,7 +5,7 @@ import org.composer.adapter.dto.*;
 import org.composer.core.model.FluxMessageContainer;
 import org.composer.core.model.ModelUser;
 import org.composer.core.model.ProcessStages;
-import org.composer.core.model.XTaskModel;
+import org.composer.core.model.CompareUsersModel;
 import org.composer.core.utils.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,8 +21,8 @@ public class FluxProcessingService implements IFluxProcessingService  {
         return UUID.randomUUID().toString();
     }
 
-    public XTaskModel getXModelFromDto(TaskInput dto, String taskId){
-        return XTaskModel.builder()
+    public CompareUsersModel getXModelFromDto(TaskInput dto, String taskId){
+        return CompareUsersModel.builder()
                 .task_id(taskId)
                 .rest_step(Task.<String, String, List<ModelUser>>builder().input(dto.getRest_input()).build())
                 .amqp_step(Task.<String, String, List<ModelUser>>builder().input(dto.getAmqp_input()).build())

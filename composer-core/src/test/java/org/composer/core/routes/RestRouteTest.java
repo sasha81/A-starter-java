@@ -10,7 +10,7 @@ import org.apache.camel.model.RouteDefinition;
 import org.apache.camel.test.junit5.CamelTestSupport;
 import org.composer.core.converters.*;
 import org.composer.core.model.ModelUser;
-import org.composer.core.model.XTaskModel;
+import org.composer.core.model.CompareUsersModel;
 import org.composer.core.services.ReactorSinkService;
 import org.composer.core.services.RestFutureProcessor;
 import org.composer.core.stubs.SyncProcessorStub;
@@ -74,7 +74,7 @@ public class RestRouteTest extends CamelTestSupport {
         context.start();
         doAnswer((Answer<Void>) invocation -> {
             Exchange exchange = invocation.getArgument(0);
-            XTaskModel body = exchange.getMessage().getBody(XTaskModel.class);
+            CompareUsersModel body = exchange.getMessage().getBody(CompareUsersModel.class);
             assertEquals(body.getRest_step().getOutput(), restOutput);
 
             return null;
@@ -86,7 +86,7 @@ public class RestRouteTest extends CamelTestSupport {
 
         String amqpInput = "buddy!";
 
-        XTaskModel model = XTaskModel.builder()
+        CompareUsersModel model = CompareUsersModel.builder()
                 .task_id(taskId)
                 .rest_step(Task.<String, String, List<ModelUser>>builder().input(restInput).build())
                 .amqp_step(Task.<String, String, List<ModelUser>>builder().input(amqpInput).build())
@@ -97,7 +97,7 @@ public class RestRouteTest extends CamelTestSupport {
         template.sendBody("direct:X_Rest_step", model);
         mock.assertIsSatisfied();
         Message message = mock.getExchanges().get(0).getMessage();
-        XTaskModel modelOut = message.getBody(XTaskModel.class);
+        CompareUsersModel modelOut = message.getBody(CompareUsersModel.class);
         assertEquals(modelOut.getRest_step().getOutput(), List.of( GetUserModel.fromDto(restUserDto)));
     }
 
@@ -128,7 +128,7 @@ public class RestRouteTest extends CamelTestSupport {
         context.start();
         doAnswer((Answer<Void>) invocation->{
             Exchange exchange = invocation.getArgument(0);
-            XTaskModel body =  exchange.getMessage().getBody(XTaskModel.class);
+            CompareUsersModel body =  exchange.getMessage().getBody(CompareUsersModel.class);
             assertNull(body.getRest_step().getOutput());
 
             return null;
@@ -139,7 +139,7 @@ public class RestRouteTest extends CamelTestSupport {
         String grpcInput= "Ann";
         String amqpInput = "buddy!";
         String restInput = "Mark";
-        XTaskModel model = XTaskModel.builder()
+        CompareUsersModel model = CompareUsersModel.builder()
                 .task_id(taskId)
                 .rest_step(Task.<String, String, List<ModelUser>>builder().input(restInput).build())
                 .amqp_step(Task.<String, String, List<ModelUser>>builder().input(amqpInput).build())
@@ -186,7 +186,7 @@ public class RestRouteTest extends CamelTestSupport {
         context.start();
         doAnswer((Answer<Void>) invocation->{
             Exchange exchange = invocation.getArgument(0);
-            XTaskModel body =  exchange.getMessage().getBody(XTaskModel.class);
+            CompareUsersModel body =  exchange.getMessage().getBody(CompareUsersModel.class);
             assertNull(body.getRest_step().getOutput());
             throw new RuntimeException();
 
@@ -198,7 +198,7 @@ public class RestRouteTest extends CamelTestSupport {
         String grpcOutput= "Hello "+grpcInput;
 
         String restInput = "Mark";
-        XTaskModel model = XTaskModel.builder()
+        CompareUsersModel model = CompareUsersModel.builder()
                 .task_id(taskId)
                 .rest_step(Task.<String, String, List<ModelUser>>builder().input(restInput).build())
                 .amqp_step(Task.<String, String, List<ModelUser>>builder().input(amqpInput).build())
@@ -210,7 +210,7 @@ public class RestRouteTest extends CamelTestSupport {
         mock.assertIsSatisfied();
         Exchange outExchange  = mock.getExchanges().get(0);
         Message message = mock.getExchanges().get(0).getMessage();
-        XTaskModel modelOut = message.getBody(XTaskModel.class);
+        CompareUsersModel modelOut = message.getBody(CompareUsersModel.class);
         verify(reactorSinkService).notifyAboutRestStep(any());
 
         verify(exceptionProcessor,atLeast(1)).process(any(Exchange.class));

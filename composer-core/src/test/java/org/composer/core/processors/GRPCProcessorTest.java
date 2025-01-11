@@ -11,7 +11,7 @@ import org.apache.camel.Exchange;
 import org.apache.camel.impl.engine.SimpleCamelContext;
 import org.apache.camel.support.DefaultExchange;
 import org.apache.camel.support.EmptyAsyncCallback;
-import org.composer.core.model.XTaskModel;
+import org.composer.core.model.CompareUsersModel;
 import org.composer.core.services.GRPCRunnableAsyncProcessor;
 import org.composer.core.utils.CustomAsyncCamelCallback;
 import org.composer.core.utils.Task;
@@ -67,7 +67,7 @@ public class GRPCProcessorTest {
 
         String amqpInput = "John";
         String restInput = "Mark";
-        XTaskModel model = XTaskModel.builder()
+        CompareUsersModel model = CompareUsersModel.builder()
                 .task_id(taskId)
                 .rest_step(Task.<String, String, List<ModelUser>>builder().input(restInput).build())
                 .amqp_step(Task.<String, String, List<ModelUser>>builder().input(amqpInput).build())
@@ -76,7 +76,7 @@ public class GRPCProcessorTest {
 
         exchange.getMessage().setBody(model);
         grpcProcessor.process(exchange,asyncCamelCallback);
-        XTaskModel modelOut = exchange.getMessage().getBody(XTaskModel.class);
+        CompareUsersModel modelOut = exchange.getMessage().getBody(CompareUsersModel.class);
         try {
             latch.await();
         } catch (InterruptedException e) {
@@ -118,7 +118,7 @@ public class GRPCProcessorTest {
 
         String amqpInput = "John";
         String restInput = "Mark";
-        XTaskModel model = XTaskModel.builder()
+        CompareUsersModel model = CompareUsersModel.builder()
                 .task_id(taskId)
                 .rest_step(Task.<String, String, List<ModelUser>>builder().input(restInput).build())
                 .amqp_step(Task.<String, String, List<ModelUser>>builder().input(amqpInput).build())
@@ -127,7 +127,7 @@ public class GRPCProcessorTest {
 
         exchange.getMessage().setBody(model);
         grpcProcessor.process(exchange,asyncCamelCallback);
-        XTaskModel modelOut = exchange.getMessage().getBody(XTaskModel.class);
+        CompareUsersModel modelOut = exchange.getMessage().getBody(CompareUsersModel.class);
         try {
             latch.await();
         } catch (InterruptedException e) {

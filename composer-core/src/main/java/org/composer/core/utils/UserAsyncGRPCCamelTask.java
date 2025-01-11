@@ -1,6 +1,6 @@
 package org.composer.core.utils;
 
-import org.composer.core.model.XTaskModel;
+import org.composer.core.model.CompareUsersModel;
 import io.grpc.Metadata;
 import io.grpc.stub.StreamObserver;
 import org.apache.camel.AsyncCallback;
@@ -28,7 +28,7 @@ public class UserAsyncGRPCCamelTask extends GRPCAsyncCamelTask<String, Users.Use
     }
     @Override
     protected String getInputFromExchange(Exchange exchange) {
-        XTaskModel body =  this.exchange.getMessage().getBody(XTaskModel.class);
+        CompareUsersModel body =  this.exchange.getMessage().getBody(CompareUsersModel.class);
         String arg = body.getGrpc_step().getInput();
         return arg;
     }

@@ -5,7 +5,7 @@ import org.composer.adapter.dto.TaskInput;
 import org.composer.adapter.services.IFluxProcessingService;
 import org.composer.adapter.services.ISendToCamelService;
 import org.composer.core.model.FluxMessageContainer;
-import org.composer.core.model.XTaskModel;
+import org.composer.core.model.CompareUsersModel;
 import org.composer.core.utils.ISinkMapObjectService;
 import org.reactivestreams.Publisher;
 import org.springframework.graphql.data.method.annotation.Argument;
@@ -46,7 +46,7 @@ public class ComposerSubscriber {
    @SubscriptionMapping("compareUsers")
     public Flux<TaskOutput> compareUsers(@Argument TaskInput inputDto ) throws IOException {
         String taskId = fluxProcessingService.getTaskId();
-        XTaskModel model = fluxProcessingService.getXModelFromDto(inputDto, taskId);
+        CompareUsersModel model = fluxProcessingService.getXModelFromDto(inputDto, taskId);
 
         Flux<FluxMessageContainer<?>> rawFlux = sinkMapService.getNewFluxWithId(taskId);
         Flux<TaskOutput> outFlux = fluxProcessingService.postProcessContainerFlux(rawFlux,taskId,()->sinkMapService.deleteMap(taskId) );

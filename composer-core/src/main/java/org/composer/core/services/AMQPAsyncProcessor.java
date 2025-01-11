@@ -3,7 +3,7 @@ package org.composer.core.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.composer.core.model.ModelUser;
-import org.composer.core.model.XTaskModel;
+import org.composer.core.model.CompareUsersModel;
 import org.example.common.utils.AmqpMessageCustom;
 import lombok.Builder;
 import org.apache.camel.AsyncCallback;
@@ -54,7 +54,7 @@ public class AMQPAsyncProcessor implements AsyncProcessor {
                         exchange.getExchangeId()));
 
         CompletableFuture<Exchange> exchangeFuture = future.thenApply(message->{
-            XTaskModel body =  exchange.getMessage().getBody( XTaskModel.class);
+            CompareUsersModel body =  exchange.getMessage().getBody( CompareUsersModel.class);
             try {
                 ModelUser[] amqpResult = objectMapper.readValue(message.getBody(),ModelUser[].class);
                 body.getAmqp_step().setOutput(List.of(amqpResult));

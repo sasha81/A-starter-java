@@ -10,7 +10,7 @@ import java.util.List;
 
 @Data
 @Builder
-public class XTaskModel implements Serializable {
+public class CompareUsersModel implements Serializable {
     private String task_id;
     private Task<String, String,List<ModelUser>> rest_step;
     private Task<String, String, List<ModelUser>> amqp_step;

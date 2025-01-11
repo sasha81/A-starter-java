@@ -9,7 +9,7 @@ import org.apache.camel.support.DefaultExchange;
 import org.composer.core.model.FluxMessageContainer;
 import org.composer.core.model.ModelGroup;
 import org.composer.core.model.ModelUser;
-import org.composer.core.model.XTaskModel;
+import org.composer.core.model.CompareUsersModel;
 import org.composer.core.stubs.SinkObjectServiceStub;
 import org.composer.core.utils.ISinkMapObjectService;
 import org.composer.core.utils.Task;
@@ -48,7 +48,7 @@ public class ReactorSinkServiceTest {
 
         ModelUser input = ModelUser.builder().userId(userId).username("A").userage(15).groups(List.of(group)).build();
         List<ModelUser> userList = List.of(input);
-        XTaskModel model = XTaskModel.builder()
+        CompareUsersModel model = CompareUsersModel.builder()
                 .task_id(taskId)
                 .rest_step(Task.<String, String, List<ModelUser>>builder().input(restInput).output(userList).build())
                 .amqp_step(Task.<String, String, List<ModelUser>>builder().input(amqpInput).output(userList).build())
@@ -75,7 +75,7 @@ public class ReactorSinkServiceTest {
         String restInput = "buddy!";
         String amqpInput = "buddy!";
         String error = "Ooops!";
-        XTaskModel model = XTaskModel.builder()
+        CompareUsersModel model = CompareUsersModel.builder()
                 .task_id(taskId)
                 .rest_step(Task.<String, String, List<ModelUser>>builder().input(restInput).errorMessage(error).build())
                 .amqp_step(Task.<String, String, List<ModelUser>>builder().input(amqpInput).build())
@@ -105,7 +105,7 @@ public class ReactorSinkServiceTest {
 
         ModelUser input = ModelUser.builder().userId(userId).username("A").userage(15).groups(List.of(group)).build();
         List<ModelUser> userList = List.of(input);
-        XTaskModel model = XTaskModel.builder()
+        CompareUsersModel model = CompareUsersModel.builder()
                 .task_id(taskId)
                 .rest_step(Task.<String, String, List<ModelUser>>builder().input(restInput).output(userList).build())
                 .amqp_step(Task.<String, String, List<ModelUser>>builder().input(amqpInput).output(userList).build())
@@ -132,7 +132,7 @@ public class ReactorSinkServiceTest {
         String restInput = "buddy!";
         String amqpInput = "buddy!";
         String error = "Ooops!";
-        XTaskModel model = XTaskModel.builder()
+        CompareUsersModel model = CompareUsersModel.builder()
                 .task_id(taskId)
                 .rest_step(Task.<String, String, List<ModelUser>>builder().input(restInput).build())
                 .amqp_step(Task.<String, String, List<ModelUser>>builder().input(amqpInput).build())
@@ -162,7 +162,7 @@ public class ReactorSinkServiceTest {
 
         ModelUser input = ModelUser.builder().userId(userId).username("A").userage(15).groups(List.of(group)).build();
         List<ModelUser> userList = List.of(input);
-        XTaskModel model = XTaskModel.builder()
+        CompareUsersModel model = CompareUsersModel.builder()
                 .task_id(taskId)
                 .rest_step(Task.<String, String, List<ModelUser>>builder().input(restInput).output(userList).build())
                 .amqp_step(Task.<String, String, List<ModelUser>>builder().input(amqpInput).output(userList).build())
@@ -189,7 +189,7 @@ public class ReactorSinkServiceTest {
         String restInput = "buddy!";
         String amqpInput = "buddy!";
         String error = "Ooops!";
-        XTaskModel model = XTaskModel.builder()
+        CompareUsersModel model = CompareUsersModel.builder()
                 .task_id(taskId)
                 .rest_step(Task.<String, String, List<ModelUser>>builder().input(restInput).build())
                 .amqp_step(Task.<String, String, List<ModelUser>>builder().input(amqpInput).errorMessage(error).build())

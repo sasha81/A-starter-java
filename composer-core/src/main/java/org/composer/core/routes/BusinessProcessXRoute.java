@@ -2,7 +2,7 @@ package org.composer.core.routes;
 
 
 
-import org.composer.core.model.XTaskModel;
+import org.composer.core.model.CompareUsersModel;
 import org.composer.core.services.AMQPFutureProcessor;
 import org.composer.core.services.IReactorSinkService;
 import org.composer.core.services.RestFutureProcessor;
@@ -74,7 +74,7 @@ public class BusinessProcessXRoute extends RouteBuilder {
                 .log(LoggingLevel.INFO, "Init a new Compare task for the input: ${body}")
                 .log(LoggingLevel.INFO, "Current thread: " + Thread.currentThread().getId())
                 .process(exchange -> {
-                    XTaskModel xTask = exchange.getMessage().getBody(XTaskModel.class);
+                    CompareUsersModel xTask = exchange.getMessage().getBody(CompareUsersModel.class);
                     exchange.getMessage().setHeader("id", xTask.getTask_id());
                 })
 

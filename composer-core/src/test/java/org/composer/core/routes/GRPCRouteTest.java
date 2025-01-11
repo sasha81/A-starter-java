@@ -10,7 +10,7 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.model.RouteDefinition;
 import org.apache.camel.test.junit5.CamelTestSupport;
-import org.composer.core.model.XTaskModel;
+import org.composer.core.model.CompareUsersModel;
 import org.composer.core.services.GRPCRunnableAsyncProcessor;
 import org.composer.core.services.ReactorSinkService;
 import org.composer.core.utils.Task;
@@ -75,7 +75,7 @@ protected RouteBuilder createRouteBuilder() throws Exception{
 
         doAnswer((Answer<Void>) invocation->{
             Exchange exchange = invocation.getArgument(0);
-            XTaskModel body =  exchange.getMessage().getBody(XTaskModel.class);
+            CompareUsersModel body =  exchange.getMessage().getBody(CompareUsersModel.class);
             assertEquals(body.getGrpc_step().getOutput(),grpcResponse);
 
             return null;
@@ -88,7 +88,7 @@ protected RouteBuilder createRouteBuilder() throws Exception{
 
         String amqpInput = "John";
         String restInput = "Mark";
-        XTaskModel model = XTaskModel.builder()
+        CompareUsersModel model = CompareUsersModel.builder()
                 .task_id(taskId)
                 .rest_step(Task.<String, String, List<ModelUser>>builder().input(restInput).build())
                 .amqp_step(Task.<String, String, List<ModelUser>>builder().input(amqpInput).build())
@@ -99,7 +99,7 @@ protected RouteBuilder createRouteBuilder() throws Exception{
         template.sendBody("direct:X_GRPC_step",model );
         mock.assertIsSatisfied();
         Message message = mock.getExchanges().get(0).getMessage();
-        XTaskModel modelOut = message.getBody(XTaskModel.class);
+        CompareUsersModel modelOut = message.getBody(CompareUsersModel.class);
         assertEquals(modelOut.getGrpc_step().getOutput().get(0).getUserId(),userViewDto.getUserId());
         assertEquals(modelOut.getGrpc_step().getOutput().get(0).getUsername(),userViewDto.getUsername());
         assertEquals(modelOut.getGrpc_step().getOutput().get(0).getGroups().get(0).getGroupId(),group.getGroupId());
