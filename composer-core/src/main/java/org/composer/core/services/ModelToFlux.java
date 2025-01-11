@@ -7,21 +7,21 @@ import java.util.List;
 
 public class ModelToFlux implements IModelToFlux{
 
-    public FluxMessageContainer<List<ModelUser>> getFluxUserGRPCContainer(XTaskModel body){
+    public FluxMessageContainer<List<ModelUser>> getFluxUserGRPCContainer(CompareUsersModel body){
         List<ModelUser> list = ((Collection<?>) body.getCurrentTask().getOutput()).stream().map(el-> (ModelUser)el).toList();
         return FluxMessageContainer.<List<ModelUser>>builder()
                 .taskId(body.getTask_id()).stage(ProcessStages.GRPC)
                 .content(list)
                 .build();
     }
-    public FluxMessageContainer<List<ModelUser>> getFluxUserAMQPContainer(XTaskModel body){
+    public FluxMessageContainer<List<ModelUser>> getFluxUserAMQPContainer(CompareUsersModel body){
         List<ModelUser> list = ((Collection<?>) body.getCurrentTask().getOutput()).stream().map(el-> (ModelUser)el).toList();
         return FluxMessageContainer.<List<ModelUser>>builder()
                 .taskId(body.getTask_id()).stage(ProcessStages.AMQP)
                 .content(list)
                 .build();
     }
-    public FluxMessageContainer<List<ModelUser>> getFluxUserRestContainer(XTaskModel body){
+    public FluxMessageContainer<List<ModelUser>> getFluxUserRestContainer(CompareUsersModel body){
         List<ModelUser> list = ((Collection<?>) body.getCurrentTask().getOutput()).stream().map(el-> (ModelUser)el).toList();
         return FluxMessageContainer.<List<ModelUser>>builder()
                 .taskId(body.getTask_id()).stage(ProcessStages.REST)
@@ -29,7 +29,7 @@ public class ModelToFlux implements IModelToFlux{
                 .build();
     }
 
-    public FluxMessageContainer<ContainerResults> getFluxResults(XTaskModel body){
+    public FluxMessageContainer<ContainerResults> getFluxResults(CompareUsersModel body){
         return FluxMessageContainer.<ContainerResults>builder()
                 .taskId(body.getTask_id()).stage(ProcessStages.FINISH)
                 .content(ContainerResults.builder()

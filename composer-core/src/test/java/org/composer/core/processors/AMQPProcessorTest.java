@@ -14,7 +14,7 @@ import org.composer.core.converters.AMQPModelUserDto;
 import org.composer.core.converters.AMQPUserModelDtoContainer;
 import org.composer.core.model.ModelUser;
 import org.composer.core.model.Specs;
-import org.composer.core.model.XTaskModel;
+import org.composer.core.model.CompareUsersModel;
 import org.composer.core.services.AMQPFutureProcessor;
 import org.composer.core.services.ISpecToModel;
 import org.composer.core.services.SpecToModel;
@@ -77,13 +77,13 @@ public class AMQPProcessorTest {
         Exchange exchange = new DefaultExchange(camelContext);
 
 
-        XTaskModel model = specToModel.getModelFromSpecs(specs);
+        CompareUsersModel model = specToModel.getModelFromSpecs(specs);
         model.setNextTask();
 
         exchange.getMessage().setBody(model);
 
         processor.process(exchange,asyncCamelCallback);
-        XTaskModel modelOut = exchange.getMessage().getBody(XTaskModel.class);
+        CompareUsersModel modelOut = exchange.getMessage().getBody(CompareUsersModel.class);
         try {
             latch.await();
         } catch (InterruptedException e) {
@@ -128,13 +128,13 @@ public class AMQPProcessorTest {
 
         String amqpInput = "John";
         String restInput = "Mark";
-        XTaskModel model = specToModel.getModelFromSpecs(specs);
+        CompareUsersModel model = specToModel.getModelFromSpecs(specs);
         model.setNextTask();
 
         exchange.getMessage().setBody(model);
 
         processor.process(exchange,asyncCamelCallback);
-        XTaskModel modelOut = exchange.getMessage().getBody(XTaskModel.class);
+        CompareUsersModel modelOut = exchange.getMessage().getBody(CompareUsersModel.class);
         try {
             latch.await();
         } catch (InterruptedException e) {

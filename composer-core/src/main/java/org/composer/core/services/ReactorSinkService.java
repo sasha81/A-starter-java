@@ -1,7 +1,6 @@
 package org.composer.core.services;
 
 
-import org.composer.core.model.ModelUser;
 import org.composer.core.model.*;
 import org.composer.core.utils.ISinkMapObjectService;
 
@@ -9,9 +8,6 @@ import org.apache.camel.Exchange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 
 @Component
@@ -27,7 +23,7 @@ public class ReactorSinkService implements IReactorSinkService {
 
 
     public void notifyAboutRestStep(Exchange exchange){
-        XTaskModel body = exchange.getMessage().getBody(XTaskModel.class);
+        CompareUsersModel body = exchange.getMessage().getBody(CompareUsersModel.class);
         String taskId = body.getTask_id();
         String msg;
         if(body.getCurrentTask().getErrorMessage()==null){
@@ -42,7 +38,7 @@ public class ReactorSinkService implements IReactorSinkService {
    }
 
     public void notifyAboutAMQPStep(Exchange exchange){
-        XTaskModel body = exchange.getMessage().getBody(XTaskModel.class);
+        CompareUsersModel body = exchange.getMessage().getBody(CompareUsersModel.class);
         String taskId = body.getTask_id();
 
         String msg;
@@ -57,7 +53,7 @@ public class ReactorSinkService implements IReactorSinkService {
     }
 
     public void notifyAboutGRPCStep(Exchange exchange){
-        XTaskModel body = exchange.getMessage().getBody(XTaskModel.class);
+        CompareUsersModel body = exchange.getMessage().getBody(CompareUsersModel.class);
         String taskId = body.getTask_id();
 
         String msg;
@@ -73,7 +69,7 @@ public class ReactorSinkService implements IReactorSinkService {
     }
 
     public void notifyAboutFinished(Exchange exchange){
-        XTaskModel body = exchange.getMessage().getBody(XTaskModel.class);
+        CompareUsersModel body = exchange.getMessage().getBody(CompareUsersModel.class);
         String taskId = body.getTask_id();;
         String msg = "Processing FINISHED";
         sinkMapService.publish(taskId, modelToFlux.getFluxResults(body));
@@ -81,7 +77,7 @@ public class ReactorSinkService implements IReactorSinkService {
     }
 
     public void close(Exchange exchange){
-        String taskId = exchange.getMessage().getBody(XTaskModel.class).getTask_id();
+        String taskId = exchange.getMessage().getBody(CompareUsersModel.class).getTask_id();
 
         sinkMapService.publish(taskId, FluxMessageContainer.builder()
                 .taskId(taskId).stage(ProcessStages.STOP).content(null).build());

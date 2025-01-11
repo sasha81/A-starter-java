@@ -14,7 +14,7 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.model.RouteDefinition;
 import org.apache.camel.test.junit5.CamelTestSupport;
-import org.composer.core.model.XTaskModel;
+import org.composer.core.model.CompareUsersModel;
 import org.composer.core.services.GRPCRunnableAsyncProcessor;
 import org.composer.core.services.ReactorSinkService;
 import org.composer.core.utils.Task;
@@ -79,7 +79,7 @@ protected RouteBuilder createRouteBuilder() throws Exception{
 
         doAnswer((Answer<Void>) invocation->{
             Exchange exchange = invocation.getArgument(0);
-            XTaskModel body =  exchange.getMessage().getBody(XTaskModel.class);
+            CompareUsersModel body =  exchange.getMessage().getBody(CompareUsersModel.class);
             assertEquals(body.getCurrentTask().getOutput(),grpcResponse);
             var  currentTask = (Task<String, String, List<ModelUser>>)body.getCurrentTask();
             assertEquals(currentTask.getOutput().get(0).getUserId(),grpcResponse.getUsersWithGroups(0).getUserId());
@@ -89,14 +89,14 @@ protected RouteBuilder createRouteBuilder() throws Exception{
 
         MockEndpoint mock = getMockEndpoint("mock:finishGRPCRoute");
 
-        XTaskModel model = UtilModelFromSpec.getModelFromSpecs(specs,"X_GRPC_step");
+        CompareUsersModel model = UtilModelFromSpec.getModelFromSpecs(specs,"X_GRPC_step");
         model.setNextTask();
 
         mock.setExpectedMessageCount(1);
         template.sendBody("direct:X_GRPC_step",model );
         mock.assertIsSatisfied();
         Message message = mock.getExchanges().get(0).getMessage();
-        XTaskModel modelOut = message.getBody(XTaskModel.class);
+        CompareUsersModel modelOut = message.getBody(CompareUsersModel.class);
         var  currentTask = (Task<String, String, List<ModelUser>>)modelOut.getCurrentTask();
         assertEquals(currentTask.getOutput().get(0).getUserId(),userViewDto.getUserId());
         assertEquals(currentTask.getOutput().get(0).getUsername(),userViewDto.getUsername());
@@ -132,7 +132,7 @@ protected RouteBuilder createRouteBuilder() throws Exception{
 
         doAnswer((Answer<Void>) invocation->{
             Exchange exchange = invocation.getArgument(0);
-            XTaskModel body =  exchange.getMessage().getBody(XTaskModel.class);
+            CompareUsersModel body =  exchange.getMessage().getBody(CompareUsersModel.class);
             assertEquals(body.getCurrentTask().getOutput(),grpcResponse);
             var  currentTask = (Task<String, String, List<ModelUser>>)body.getCurrentTask();
             assertEquals(currentTask.getOutput().get(0).getUserId(),grpcResponse.getUsersWithGroups(0).getUserId());
@@ -142,14 +142,14 @@ protected RouteBuilder createRouteBuilder() throws Exception{
 
         MockEndpoint mock = getMockEndpoint("mock:finishGRPCRoute");
 
-        XTaskModel model = UtilModelFromSpec.getModelFromSpecs(specs,"X_GRPC_step");
+        CompareUsersModel model = UtilModelFromSpec.getModelFromSpecs(specs,"X_GRPC_step");
         model.setNextTask();
         model.getCurrentTask().setErrorMessage(errorMsg);
         mock.setExpectedMessageCount(1);
         template.sendBody("direct:X_GRPC_step",model );
         mock.assertIsSatisfied();
         Message message = mock.getExchanges().get(0).getMessage();
-        XTaskModel modelOut = message.getBody(XTaskModel.class);
+        CompareUsersModel modelOut = message.getBody(CompareUsersModel.class);
         var  currentTask = (Task<String, String, List<ModelUser>>)modelOut.getCurrentTask();
 
         assertEquals(currentTask.getErrorMessage(),errorMsg);

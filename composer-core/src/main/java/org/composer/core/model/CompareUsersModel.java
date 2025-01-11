@@ -6,12 +6,11 @@ import org.composer.core.utils.Task;
 
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
 @Data
 @Builder
-public class XTaskModel implements Serializable {
+public class CompareUsersModel implements Serializable {
     private String task_id;
     //It should be a taskGraph in a real life app
     List<Task<String, String,?>> taskList;

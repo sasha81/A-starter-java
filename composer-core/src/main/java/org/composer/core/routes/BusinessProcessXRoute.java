@@ -3,7 +3,7 @@ package org.composer.core.routes;
 
 
 import org.composer.core.model.Specs;
-import org.composer.core.model.XTaskModel;
+import org.composer.core.model.CompareUsersModel;
 import org.composer.core.services.*;
 import org.composer.core.utils.ThreadPoolShutdownStrategy;
 import net.devh.boot.grpc.client.inject.GrpcClient;
@@ -72,15 +72,7 @@ public class BusinessProcessXRoute extends RouteBuilder {
         from("direct:new_CompareUsers_task")
                 .log(LoggingLevel.INFO, "Init a new Compare task for the input: ${body}")
                 .log(LoggingLevel.INFO, "Current thread: " + Thread.currentThread().getId())
-                .process(exchange -> {
-                    Specs spec = exchange.getMessage().getBody( Specs.class);
-                    XTaskModel task = this.specToModel.getModelFromSpecs(spec);
-                    exchange.getMessage().setHeader("id", spec.getTaskId());
-                    task.setNextTask();
-                    exchange.getMessage().setBody(task);
-                    String executor = task.getCurrentTask().getExecutor();
-                    exchange.getMessage().setHeader("executor",executor);
-                })
+                .process(new InitCompareUserModel(specToModel))
 
                 .log(LoggingLevel.INFO, "executor: ${header.executor}")
                 .log(LoggingLevel.INFO, "Current thread: " + Thread.currentThread().getId())
@@ -92,11 +84,7 @@ public class BusinessProcessXRoute extends RouteBuilder {
                 .setBody(body())
                 .process(new RestFutureProcessor(webClient, restUrl)).id("Rest_Async_Processor")
                 .bean(reactorSinkService, "notifyAboutRestStep")
-                .process(exchange -> {
-                    XTaskModel model = exchange.getMessage().getBody( XTaskModel.class);
-                    model.setNextTask();
-                    exchange.getMessage().setHeader("executor",model.getCurrentTask().getExecutor());
-                })
+                .process(new SetNextTaskProcessor())
                 .log("executor: ${header.executor}")
                 .toD("direct:${header.executor}")
         ;
@@ -113,11 +101,7 @@ public class BusinessProcessXRoute extends RouteBuilder {
         from("direct:X_AMQP_step").id("X_AMQP_step")
                 .process(new AMQPFutureProcessor(rabbitTemplate,exchangeName,nestRoutingkey)).id("AMQP_Async_Processor")
                 .bean(reactorSinkService, "notifyAboutAMQPStep")
-                .process(exchange -> {
-                    XTaskModel model = exchange.getMessage().getBody( XTaskModel.class);
-                    model.setNextTask();
-                    exchange.getMessage().setHeader("executor",model.getCurrentTask().getExecutor());
-                })
+                .process(new SetNextTaskProcessor())
                 .log("executor: ${header.executor}")
                 .toD("direct:${header.executor}")
         ;
@@ -127,11 +111,7 @@ public class BusinessProcessXRoute extends RouteBuilder {
                 .log(LoggingLevel.INFO, "Current thread: " + Thread.currentThread().getId())
                 .process(new GRPCRunnableAsyncProcessor(executorService, nestStub)).id("GRPC_Async_Processor")
                 .bean(reactorSinkService, "notifyAboutGRPCStep")
-                .process(exchange -> {
-                    XTaskModel model = exchange.getMessage().getBody( XTaskModel.class);
-                    model.setNextTask();
-                    exchange.getMessage().setHeader("executor",model.getCurrentTask().getExecutor());
-                })
+                .process(new SetNextTaskProcessor())
                 .log("ID: ${header.id}")
                 .toD("direct:${header.executor}")
         ;

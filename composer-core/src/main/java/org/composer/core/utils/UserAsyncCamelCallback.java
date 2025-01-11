@@ -5,11 +5,10 @@ import org.apache.camel.AsyncCallback;
 import org.apache.camel.Exchange;
 import org.composer.core.converters.GetUserModel;
 import org.composer.core.model.ModelUser;
-import org.composer.core.model.XTaskModel;
+import org.composer.core.model.CompareUsersModel;
 import users.Users;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class UserAsyncCamelCallback extends AbstractAsyncCameCallback<Users.UsersWithGroupsDto>{
     public UserAsyncCamelCallback(Exchange exchange, AsyncCallback callback) {
@@ -17,7 +16,7 @@ public class UserAsyncCamelCallback extends AbstractAsyncCameCallback<Users.User
     }
     @Override
     public void onNext(Users.UsersWithGroupsDto value) {
-        XTaskModel body =  this.exchange.getMessage().getBody(XTaskModel.class);
+        CompareUsersModel body =  this.exchange.getMessage().getBody(CompareUsersModel.class);
 
         List<ModelUser> modelUserList = value.getUsersWithGroupsList().stream().map(GetUserModel::fromDto).toList();
         var  currentTask = (Task<String, String, List<ModelUser>>)body.getCurrentTask();

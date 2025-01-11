@@ -24,7 +24,7 @@ public class ModelToFluxTest {
 
         ModelUser input = ModelUser.builder().userId(userId).username("A").userage(15).groups(List.of(group)).build();
         List<ModelUser> userList = List.of(input);
-        XTaskModel model = specToModel.getModelFromSpecs(specs);
+        CompareUsersModel model = specToModel.getModelFromSpecs(specs);
         model.setNextTask();
         var  currentTask = (Task<String, String, List<ModelUser>>)model.getCurrentTask();
         currentTask.setOutput(userList);
@@ -42,7 +42,7 @@ public class ModelToFluxTest {
 
         ModelUser input = ModelUser.builder().userId(userId).username("A").userage(15).groups(List.of(group)).build();
         List<ModelUser> userList = List.of(input);
-        XTaskModel model = specToModel.getModelFromSpecs(specs);
+        CompareUsersModel model = specToModel.getModelFromSpecs(specs);
         model.setNextTask();
         var  currentTask = (Task<String, String, List<ModelUser>>)model.getCurrentTask();
         currentTask.setOutput(userList);
@@ -60,7 +60,7 @@ public class ModelToFluxTest {
 
         ModelUser input = ModelUser.builder().userId(userId).username("A").userage(15).groups(List.of(group)).build();
         List<ModelUser> userList = List.of(input);
-        XTaskModel model = specToModel.getModelFromSpecs(specs);
+        CompareUsersModel model = specToModel.getModelFromSpecs(specs);
         model.setNextTask();
         var  currentTask = (Task<String, String, List<ModelUser>>)model.getCurrentTask();
         currentTask.setOutput(userList);

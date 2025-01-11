@@ -13,7 +13,7 @@ import org.composer.core.converters.AMQPModelUserDto;
 import org.composer.core.converters.GetUserModel;
 import org.composer.core.model.ModelUser;
 import org.composer.core.model.Specs;
-import org.composer.core.model.XTaskModel;
+import org.composer.core.model.CompareUsersModel;
 import org.composer.core.services.AMQPFutureProcessor;
 import org.composer.core.services.ISpecToModel;
 import org.composer.core.services.ReactorSinkService;
@@ -79,7 +79,7 @@ public class AMQPRouteTest extends CamelTestSupport {
             public void configure() throws Exception {
                 weaveById("AMQP_Async_Processor").replace().setBody(exchange->{
 
-                    XTaskModel model = AMQPFutureProcessor.setBody(exchange,new  AMQPModelUserDto[] {amqpDto});
+                    CompareUsersModel model = AMQPFutureProcessor.setBody(exchange,new  AMQPModelUserDto[] {amqpDto});
                     return model;
                 });
                 weaveAddLast().to("mock:finishAMQPRoute");
@@ -89,7 +89,7 @@ public class AMQPRouteTest extends CamelTestSupport {
 
         doAnswer((Answer<Void>) invocation->{
             Exchange exchange = invocation.getArgument(0);
-            XTaskModel body =  exchange.getMessage().getBody(XTaskModel.class);
+            CompareUsersModel body =  exchange.getMessage().getBody(CompareUsersModel.class);
             var  currentTask = (Task<String, String, List<ModelUser>>)body.getCurrentTask();
             assertEquals(currentTask.getOutput().get(0).getUserId(),amqpDto.getUserId());
 
@@ -99,14 +99,14 @@ public class AMQPRouteTest extends CamelTestSupport {
 
         MockEndpoint mock = getMockEndpoint("mock:finishAMQPRoute");
 
-        XTaskModel model = UtilModelFromSpec.getModelFromSpecs(specs,"X_AMQP_step");
+        CompareUsersModel model = UtilModelFromSpec.getModelFromSpecs(specs,"X_AMQP_step");
         model.setNextTask();
 
         mock.setExpectedMessageCount(1);
         template.sendBody("direct:X_AMQP_step",model );
         mock.assertIsSatisfied();
         Message message = mock.getExchanges().get(0).getMessage();
-        XTaskModel modelOut = message.getBody(XTaskModel.class);
+        CompareUsersModel modelOut = message.getBody(CompareUsersModel.class);
 
         verify(reactorSinkService).notifyAboutAMQPStep(any());
         var  currentTask = (Task<String, String, List<ModelUser>>)modelOut.getCurrentTask();
@@ -127,7 +127,7 @@ public class AMQPRouteTest extends CamelTestSupport {
             public void configure() throws Exception {
                 weaveById("AMQP_Async_Processor").replace().setBody(exchange->{
 
-                    XTaskModel model = AMQPFutureProcessor.setBody(exchange,new  AMQPModelUserDto[] {amqpDto});
+                    CompareUsersModel model = AMQPFutureProcessor.setBody(exchange,new  AMQPModelUserDto[] {amqpDto});
                     return model;
                 });
                 weaveAddLast().to("mock:finishAMQPRoute");
@@ -137,7 +137,7 @@ public class AMQPRouteTest extends CamelTestSupport {
 
         doAnswer((Answer<Void>) invocation->{
             Exchange exchange = invocation.getArgument(0);
-            XTaskModel body =  exchange.getMessage().getBody(XTaskModel.class);
+            CompareUsersModel body =  exchange.getMessage().getBody(CompareUsersModel.class);
             var  currentTask = (Task<String, String, List<ModelUser>>)body.getCurrentTask();
             assertEquals(currentTask.getOutput().get(0).getUserId(),amqpDto.getUserId());
 
@@ -147,14 +147,14 @@ public class AMQPRouteTest extends CamelTestSupport {
 
         MockEndpoint mock = getMockEndpoint("mock:finishAMQPRoute");
 
-        XTaskModel model = UtilModelFromSpec.getModelFromSpecs(specs,"X_AMQP_step");
+        CompareUsersModel model = UtilModelFromSpec.getModelFromSpecs(specs,"X_AMQP_step");
         model.setNextTask();
         model.getCurrentTask().setErrorMessage(errorMsg);
         mock.setExpectedMessageCount(1);
         template.sendBody("direct:X_AMQP_step",model );
         mock.assertIsSatisfied();
         Message message = mock.getExchanges().get(0).getMessage();
-        XTaskModel modelOut = message.getBody(XTaskModel.class);
+        CompareUsersModel modelOut = message.getBody(CompareUsersModel.class);
 
         verify(reactorSinkService).notifyAboutAMQPStep(any());
         var  currentTask = (Task<String, String, List<ModelUser>>)modelOut.getCurrentTask();

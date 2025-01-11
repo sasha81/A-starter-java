@@ -2,7 +2,7 @@ package org.composer.core.services;
 
 import org.composer.core.converters.GetUserModel;
 import org.composer.core.model.ModelUser;
-import org.composer.core.model.XTaskModel;
+import org.composer.core.model.CompareUsersModel;
 import org.composer.core.utils.Task;
 import org.example.common.utils.TriConsumer;
 import io.grpc.Metadata;
@@ -56,7 +56,7 @@ public class GRPCRunnableAsyncProcessor extends RunnableCamelAsyncProcessor<Meta
     @Override
     protected Function<Exchange, String> getInputFromExchange() {
         return (exchange) -> {
-            XTaskModel body = exchange.getMessage().getBody(XTaskModel.class);
+            CompareUsersModel body = exchange.getMessage().getBody(CompareUsersModel.class);
             String arg = body.getCurrentTask().getInput();
             return arg;
         };
@@ -65,7 +65,7 @@ public class GRPCRunnableAsyncProcessor extends RunnableCamelAsyncProcessor<Meta
     @Override
     protected BiConsumer<Exchange, Throwable> getOnErrorCamelCallback() {
         return (exchange, t) -> {
-            XTaskModel body = exchange.getMessage().getBody(XTaskModel.class);
+            CompareUsersModel body = exchange.getMessage().getBody(CompareUsersModel.class);
             body.getCurrentTask().setErrorMessage(getGRPCErrorMessage(t));
             exchange.getMessage().setBody(body);
             exchange.setException(t);
@@ -84,14 +84,14 @@ public class GRPCRunnableAsyncProcessor extends RunnableCamelAsyncProcessor<Meta
 
 
     public static Exchange addGrpcDataToExchange(Exchange exchange, Users.UsersWithGroupsDto grpcResult) {
-        XTaskModel body = setBody(exchange, grpcResult);
+        CompareUsersModel body = setBody(exchange, grpcResult);
         exchange.getMessage().setBody(body);
         return exchange;
     }
 
 
-    public static XTaskModel setBody(Exchange exchange, Users.UsersWithGroupsDto grpcResult) {
-        XTaskModel body = exchange.getMessage().getBody(XTaskModel.class);
+    public static CompareUsersModel setBody(Exchange exchange, Users.UsersWithGroupsDto grpcResult) {
+        CompareUsersModel body = exchange.getMessage().getBody(CompareUsersModel.class);
         List<ModelUser> modelUserList = grpcResult.getUsersWithGroupsList().stream().map(GetUserModel::fromDto).toList();
         var  currentTask = (Task<String, String, List<ModelUser>>)body.getCurrentTask();
         currentTask.setOutput(modelUserList);

@@ -2,7 +2,7 @@ package org.composer.core.services;
 
 
 import org.composer.core.model.Specs;
-import org.composer.core.model.XTaskModel;
+import org.composer.core.model.CompareUsersModel;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -17,7 +17,7 @@ public class SpecToModelTest {
     @Test
     public void specToModelTest(){
         Specs specs = Specs.builder().specifications("Spec_1").taskId("ABCD").build();
-        XTaskModel model = specToModel.getModelFromSpecs(specs);
+        CompareUsersModel model = specToModel.getModelFromSpecs(specs);
         assertEquals(model.getTask_id(),specs.getTaskId());
         assertEquals(model.getNextTask().getExecutor(),model.getTaskList().get(0).getExecutor());
 

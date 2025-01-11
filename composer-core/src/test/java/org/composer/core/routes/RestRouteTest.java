@@ -11,7 +11,7 @@ import org.apache.camel.test.junit5.CamelTestSupport;
 import org.composer.core.converters.*;
 import org.composer.core.model.ModelUser;
 import org.composer.core.model.Specs;
-import org.composer.core.model.XTaskModel;
+import org.composer.core.model.CompareUsersModel;
 import org.composer.core.services.ISpecToModel;
 import org.composer.core.services.ReactorSinkService;
 import org.composer.core.services.RestFutureProcessor;
@@ -81,7 +81,7 @@ public class RestRouteTest extends CamelTestSupport {
         context.start();
         doAnswer((Answer<Void>) invocation -> {
             Exchange exchange = invocation.getArgument(0);
-            XTaskModel body = exchange.getMessage().getBody(XTaskModel.class);
+            CompareUsersModel body = exchange.getMessage().getBody(CompareUsersModel.class);
             assertEquals(body.getCurrentTask().getOutput(), restOutput);
             var  currentTask = (Task<String, String, List<ModelUser>>)body.getCurrentTask();
             assertEquals(currentTask.getOutput().get(0).getUserId(),restUserDto.getUserId());
@@ -93,14 +93,14 @@ public class RestRouteTest extends CamelTestSupport {
         MockEndpoint mock = getMockEndpoint("mock:finishRestRoute");
 
 
-        XTaskModel model = UtilModelFromSpec.getModelFromSpecs(specs,"X_Rest_step");
+        CompareUsersModel model = UtilModelFromSpec.getModelFromSpecs(specs,"X_Rest_step");
         model.setNextTask();
 
         mock.setExpectedMessageCount(1);
         template.sendBody("direct:X_Rest_step", model);
         mock.assertIsSatisfied();
         Message message = mock.getExchanges().get(0).getMessage();
-        XTaskModel modelOut = message.getBody(XTaskModel.class);
+        CompareUsersModel modelOut = message.getBody(CompareUsersModel.class);
         assertEquals(modelOut.getCurrentTask().getOutput(), List.of( GetUserModel.fromDto(restUserDto)));
     }
 
@@ -129,7 +129,7 @@ public class RestRouteTest extends CamelTestSupport {
         context.start();
         doAnswer((Answer<Void>) invocation -> {
             Exchange exchange = invocation.getArgument(0);
-            XTaskModel body = exchange.getMessage().getBody(XTaskModel.class);
+            CompareUsersModel body = exchange.getMessage().getBody(CompareUsersModel.class);
             assertEquals(body.getCurrentTask().getOutput(), restOutput);
             var  currentTask = (Task<String, String, List<ModelUser>>)body.getCurrentTask();
             assertEquals(currentTask.getOutput().get(0).getUserId(),restUserDto.getUserId());
@@ -141,14 +141,14 @@ public class RestRouteTest extends CamelTestSupport {
         MockEndpoint mock = getMockEndpoint("mock:finishRestRoute");
 
 
-        XTaskModel model = UtilModelFromSpec.getModelFromSpecs(specs,"X_Rest_step");
+        CompareUsersModel model = UtilModelFromSpec.getModelFromSpecs(specs,"X_Rest_step");
         model.setNextTask();
         model.getCurrentTask().setErrorMessage(errorMsg);
         mock.setExpectedMessageCount(1);
         template.sendBody("direct:X_Rest_step", model);
         mock.assertIsSatisfied();
         Message message = mock.getExchanges().get(0).getMessage();
-        XTaskModel modelOut = message.getBody(XTaskModel.class);
+        CompareUsersModel modelOut = message.getBody(CompareUsersModel.class);
         var  currentTask = (Task<String, String, List<ModelUser>>)modelOut.getCurrentTask();
 
         assertEquals(currentTask.getErrorMessage(),errorMsg);

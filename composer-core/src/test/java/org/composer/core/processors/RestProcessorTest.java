@@ -10,7 +10,7 @@ import org.apache.camel.support.EmptyAsyncCallback;
 import org.composer.core.converters.*;
 import org.composer.core.model.ModelUser;
 import org.composer.core.model.Specs;
-import org.composer.core.model.XTaskModel;
+import org.composer.core.model.CompareUsersModel;
 import org.composer.core.services.ISpecToModel;
 import org.composer.core.services.RestFutureProcessor;
 import org.composer.core.services.SpecToModel;
@@ -69,13 +69,13 @@ public class RestProcessorTest {
 
         String amqpInput = "John";
         String restInput = "Mark";
-        XTaskModel model = specToModel.getModelFromSpecs(specs);
+        CompareUsersModel model = specToModel.getModelFromSpecs(specs);
         model.setNextTask();
 
         exchange.getMessage().setBody(model);
 
         processor.process(exchange,asyncCamelCallback);
-        XTaskModel modelOut = exchange.getMessage().getBody(XTaskModel.class);
+        CompareUsersModel modelOut = exchange.getMessage().getBody(CompareUsersModel.class);
         try {
             latch.await();
         } catch (InterruptedException e) {
@@ -115,18 +115,13 @@ public class RestProcessorTest {
 
         Exchange exchange = new DefaultExchange(camelContext);
 
-        String taskId="abcdef";
-        String grpcInput= "Ann";
-
-        String amqpInput = "John";
-        String restInput = "Mark";
-        XTaskModel model = specToModel.getModelFromSpecs(specs);
+        CompareUsersModel model = specToModel.getModelFromSpecs(specs);
         model.setNextTask();
 
         exchange.getMessage().setBody(model);
 
         processor.process(exchange,asyncCamelCallback);
-        XTaskModel modelOut = exchange.getMessage().getBody(XTaskModel.class);
+        CompareUsersModel modelOut = exchange.getMessage().getBody(CompareUsersModel.class);
         try {
             latch.await();
         } catch (InterruptedException e) {
