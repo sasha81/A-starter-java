@@ -10,7 +10,7 @@ public interface IReactorSinkService {
 
     void notifyAboutGRPCStep(Exchange exchange);
 
-    void notifyAboutFinished(Exchange exchange);
+    void notifyAboutResult(Exchange exchange);
 
     void close(Exchange exchange);
 }

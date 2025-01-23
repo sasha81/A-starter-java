@@ -6,6 +6,7 @@ import org.composer.adapter.services.FluxProcessingService;
 import org.composer.adapter.services.SendToCamelService;
 import org.composer.core.model.FluxMessageContainer;
 import org.composer.core.model.CompareUsersModel;
+import org.composer.core.routes.UserRouteNames;
 import org.composer.core.utils.ISinkMapObjectService;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
@@ -36,7 +37,7 @@ public class ComposerController {
         Flux<FluxMessageContainer<?>> rawFlux = sinkMapService.getNewFluxWithId(taskId);
         Flux<ServerSentEvent<OutputDto>> outFlux = fluxProcessingService.postProcessContainerFlux(rawFlux,taskId,()->sinkMapService.deleteMap(taskId) );
 
-        this.sendToCamelService.sendBodyToCamel("direct:new_CompareUsers_task",model);
+        this.sendToCamelService.sendBodyToCamel("direct:"+ UserRouteNames.NEW_COMPARE_USERS.name,model);
         return outFlux;
 
     }

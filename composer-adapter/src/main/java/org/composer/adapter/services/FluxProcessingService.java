@@ -26,6 +26,7 @@ public class FluxProcessingService {
                 .rest_step(Task.<String, String, List<ModelUser>>builder().input(dto.getRest_input()).build())
                 .amqp_step(Task.<String, String, List<ModelUser>>builder().input(dto.getAmqp_input()).build())
                 .grpc_step(Task.<String, String, List<ModelUser>>builder().input(dto.getGrpc_input()).build())
+                .final_result(Task.<String, String, ContainerResults>builder().build())
                 .build();
     }
     public Flux<ServerSentEvent<OutputDto>> postProcessContainerFlux(Flux<FluxMessageContainer<?>> inFlux, String taskId, Runnable doOnCancel){

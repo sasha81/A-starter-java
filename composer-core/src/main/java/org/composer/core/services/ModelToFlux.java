@@ -27,11 +27,8 @@ public class ModelToFlux implements IModelToFlux{
 
     public FluxMessageContainer<ContainerResults> getFluxResults(CompareUsersModel body){
         return FluxMessageContainer.<ContainerResults>builder()
-                .taskId(body.getTask_id()).stage(ProcessStages.FINISH)
-                .content(ContainerResults.builder()
-                        .groupsOfTheSameUserMatch(DegreesOfMatching.CLOSE)
-                        .numberOfUsersMatch(DegreesOfMatching.DIFFERENT)
-                        .build())
+                .taskId(body.getTask_id()).stage(ProcessStages.RESULT)
+                .content(body.getFinal_result().getOutput())
                 .build();
     }
 }

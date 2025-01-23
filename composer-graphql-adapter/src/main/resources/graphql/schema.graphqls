@@ -47,8 +47,9 @@ enum ProcessStages {
     GRPC
     AMQP
     REST
+    RESULT
     STOP
-    FINISH
+
 }
 enum DegreesOfMatching {
     EXACT_MATCH

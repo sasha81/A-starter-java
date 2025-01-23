@@ -2,6 +2,7 @@ package org.composer.adapter.services;
 
 
 import org.composer.adapter.dto.*;
+import org.composer.core.model.ContainerResults;
 import org.composer.core.model.FluxMessageContainer;
 import org.composer.core.model.ModelUser;
 import org.composer.core.model.ProcessStages;
@@ -27,6 +28,7 @@ public class FluxProcessingService implements IFluxProcessingService  {
                 .rest_step(Task.<String, String, List<ModelUser>>builder().input(dto.getRest_input()).build())
                 .amqp_step(Task.<String, String, List<ModelUser>>builder().input(dto.getAmqp_input()).build())
                 .grpc_step(Task.<String, String, List<ModelUser>>builder().input(dto.getGrpc_input()).build())
+                .final_result(Task.<String, String, ContainerResults>builder().build())
                 .build();
     }
     public Flux<TaskOutput> postProcessContainerFlux(Flux<FluxMessageContainer<?>> inFlux, String taskId, Runnable doOnCancel){
@@ -60,10 +62,10 @@ public class FluxProcessingService implements IFluxProcessingService  {
                     .stage(input.getStage()).build();
 
         }
-        else if (stage == ProcessStages.FINISH){
+        else if (stage == ProcessStages.RESULT){
 
             return TaskOutput.builder().taskId(input.getTaskId())
-                    .content(content).stage(input.getStage()).build();
+                    .content( content).stage(input.getStage()).build();
         }
         else{
             return TaskOutput.builder().taskId(input.getTaskId())

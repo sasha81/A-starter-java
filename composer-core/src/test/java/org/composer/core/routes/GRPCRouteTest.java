@@ -2,6 +2,7 @@ package org.composer.core.routes;
 
 
 import org.composer.core.model.ModelUser;
+import org.composer.core.services.UserProcessService;
 import users.Users;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
@@ -32,7 +33,7 @@ import static org.mockito.Mockito.doAnswer;
 public class GRPCRouteTest extends CamelTestSupport{
 
     @Mock
-    BusinessProcessXService businessProcessXService;
+    UserProcessService businessProcessXService;
 
     @Mock
     ReactorSinkService reactorSinkService;
@@ -45,7 +46,7 @@ public class GRPCRouteTest extends CamelTestSupport{
 
 @Override
 protected RouteBuilder createRouteBuilder() throws Exception{
-        return new BusinessProcessXRoute(businessProcessXService, reactorSinkService);
+        return new UserRoutes(businessProcessXService, reactorSinkService);
 }
 
 

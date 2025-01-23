@@ -6,6 +6,7 @@ import org.composer.adapter.services.IFluxProcessingService;
 import org.composer.adapter.services.ISendToCamelService;
 import org.composer.core.model.FluxMessageContainer;
 import org.composer.core.model.CompareUsersModel;
+import org.composer.core.routes.UserRouteNames;
 import org.composer.core.utils.ISinkMapObjectService;
 import org.reactivestreams.Publisher;
 import org.springframework.graphql.data.method.annotation.Argument;
@@ -51,7 +52,7 @@ public class ComposerSubscriber {
         Flux<FluxMessageContainer<?>> rawFlux = sinkMapService.getNewFluxWithId(taskId);
         Flux<TaskOutput> outFlux = fluxProcessingService.postProcessContainerFlux(rawFlux,taskId,()->sinkMapService.deleteMap(taskId) );
 
-                this.sendToCamelService.sendBodyToCamel("direct:new_CompareUsers_task",model);
+                this.sendToCamelService.sendBodyToCamel("direct:"+ UserRouteNames.NEW_COMPARE_USERS.name,model);
 
             return outFlux;
 

@@ -15,5 +15,5 @@ public class CompareUsersModel implements Serializable {
     private Task<String, String,List<ModelUser>> rest_step;
     private Task<String, String, List<ModelUser>> amqp_step;
     private Task<String, String, List<ModelUser>> grpc_step;
-    private String final_result;
+    private Task<String, String, ContainerResults> final_result;
 }

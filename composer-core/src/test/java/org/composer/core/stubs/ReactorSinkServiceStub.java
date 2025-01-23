@@ -36,7 +36,7 @@ public class ReactorSinkServiceStub implements IReactorSinkService {
     }
 
     @Override
-    public void notifyAboutFinished(Exchange exchange) {
+    public void notifyAboutResult(Exchange exchange) {
 
     }
 

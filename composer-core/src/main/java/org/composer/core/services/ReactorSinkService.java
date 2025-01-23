@@ -75,12 +75,12 @@ public class ReactorSinkService implements IReactorSinkService {
         logger.info("GRPCStep :"+taskId+" "+msg);
     }
 
-    public void notifyAboutFinished(Exchange exchange){
+    public void notifyAboutResult(Exchange exchange){
         CompareUsersModel body = exchange.getMessage().getBody(CompareUsersModel.class);
         String taskId = body.getTask_id();;
-        String msg = "Processing FINISHED";
+        String msg = "Result is ready";
         sinkMapService.publish(taskId, modelToFlux.getFluxResults(body));
-        logger.info("FinishStep :"+taskId+" "+msg);
+        logger.info("ResultStep :"+taskId+" "+msg);
     }
 
     public void close(Exchange exchange){
@@ -90,32 +90,4 @@ public class ReactorSinkService implements IReactorSinkService {
                 .taskId(taskId).stage(ProcessStages.STOP).content(null).build());
     }
 
-    public FluxMessageContainer<List<ModelUser>> getFluxUserGRPCContainer(CompareUsersModel body){
-        return FluxMessageContainer.<List<ModelUser>>builder()
-                .taskId(body.getTask_id()).stage(ProcessStages.GRPC)
-                .content(body.getGrpc_step().getOutput())
-                .build();
-    }
-    public FluxMessageContainer<List<ModelUser>> getFluxUserAMQPContainer(CompareUsersModel body){
-        return FluxMessageContainer.<List<ModelUser>>builder()
-                .taskId(body.getTask_id()).stage(ProcessStages.AMQP)
-                .content(body.getAmqp_step().getOutput())
-                .build();
-    }
-    public FluxMessageContainer<List<ModelUser>> getFluxUserRestContainer(CompareUsersModel body){
-        return FluxMessageContainer.<List<ModelUser>>builder()
-                .taskId(body.getTask_id()).stage(ProcessStages.REST)
-                .content(body.getRest_step().getOutput())
-                .build();
-    }
-
-    public FluxMessageContainer<ContainerResults> getFluxResults(CompareUsersModel body){
-        return FluxMessageContainer.<ContainerResults>builder()
-                .taskId(body.getTask_id()).stage(ProcessStages.FINISH)
-                .content(ContainerResults.builder()
-                        .groupsOfTheSameUserMatch(DegreesOfMatching.CLOSE)
-                        .numberOfUsersMatch(DegreesOfMatching.DIFFERENT)
-                        .build())
-                .build();
-    }
 }

@@ -11,6 +11,7 @@ import org.apache.camel.test.junit5.CamelTestSupport;
 import org.composer.core.converters.*;
 import org.composer.core.model.ModelUser;
 import org.composer.core.model.CompareUsersModel;
+import org.composer.core.services.UserProcessService;
 import org.composer.core.services.ReactorSinkService;
 import org.composer.core.services.RestFutureProcessor;
 import org.composer.core.stubs.SyncProcessorStub;
@@ -35,7 +36,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 public class RestRouteTest extends CamelTestSupport {
     @Mock
-    BusinessProcessXService businessProcessXService;
+    UserProcessService businessProcessXService;
     @Mock
     ReactorSinkService reactorSinkService;
     @Spy
@@ -47,13 +48,13 @@ public class RestRouteTest extends CamelTestSupport {
 
     @Override
     protected RouteBuilder createRouteBuilder() throws Exception {
-        return new BusinessProcessXRoute(businessProcessXService, reactorSinkService);
+        return new UserRoutes(businessProcessXService, reactorSinkService);
     }
 
 
     @Test
     public void RstRouteTest() throws Exception {
-        RouteDefinition route = context.getRouteDefinition("X_Rest_step");
+        RouteDefinition route = context.getRouteDefinition(UserRouteNames.REST.name);
         String restInput = "buddy!";
         String restOutput = "Hello " + restInput + "!";
 
@@ -94,7 +95,7 @@ public class RestRouteTest extends CamelTestSupport {
                 .build();
 
         mock.setExpectedMessageCount(1);
-        template.sendBody("direct:X_Rest_step", model);
+        template.sendBody("direct:"+UserRouteNames.REST.name, model);
         mock.assertIsSatisfied();
         Message message = mock.getExchanges().get(0).getMessage();
         CompareUsersModel modelOut = message.getBody(CompareUsersModel.class);
@@ -107,7 +108,7 @@ public class RestRouteTest extends CamelTestSupport {
     clause, then propagates down the original route.
      */
     public void RestRouteErrorTest() throws Exception{
-        RouteDefinition route = context.getRouteDefinition("X_Rest_step");
+        RouteDefinition route = context.getRouteDefinition(UserRouteNames.REST.name);
 
 
         String exceptionMsg = "Ooops!";
@@ -147,7 +148,7 @@ public class RestRouteTest extends CamelTestSupport {
                 .build();
 
         mock.setExpectedMessageCount(1);
-        template.sendBody("direct:X_Rest_step",model );
+        template.sendBody("direct:"+UserRouteNames.REST.name,model );
         mock.assertIsSatisfied();
 
         verify(reactorSinkService).notifyAboutRestStep(any());
@@ -165,7 +166,7 @@ public class RestRouteTest extends CamelTestSupport {
     So, our exception processor should be called twice.
      */
     public void RestRoute2ErrorTest() throws Exception{
-        RouteDefinition route = context.getRouteDefinition("X_Rest_step");
+        RouteDefinition route = context.getRouteDefinition(UserRouteNames.REST.name);
         String amqpInput = "buddy!";
 
         String exceptionMsg = "Ooops!";
@@ -195,7 +196,7 @@ public class RestRouteTest extends CamelTestSupport {
         MockEndpoint mock = getMockEndpoint("mock:finishRestRoute");
         String taskId="abcdef";
         String grpcInput= "Ann";
-        String grpcOutput= "Hello "+grpcInput;
+
 
         String restInput = "Mark";
         CompareUsersModel model = CompareUsersModel.builder()
@@ -206,11 +207,9 @@ public class RestRouteTest extends CamelTestSupport {
                 .build();
 
         mock.setExpectedMessageCount(1);
-        template.sendBody("direct:X_Rest_step",model );
+        template.sendBody("direct:"+UserRouteNames.REST.name,model );
         mock.assertIsSatisfied();
-        Exchange outExchange  = mock.getExchanges().get(0);
-        Message message = mock.getExchanges().get(0).getMessage();
-        CompareUsersModel modelOut = message.getBody(CompareUsersModel.class);
+
         verify(reactorSinkService).notifyAboutRestStep(any());
 
         verify(exceptionProcessor,atLeast(1)).process(any(Exchange.class));

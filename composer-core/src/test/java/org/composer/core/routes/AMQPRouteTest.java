@@ -14,6 +14,7 @@ import org.composer.core.converters.GetUserModel;
 import org.composer.core.model.ModelUser;
 import org.composer.core.model.CompareUsersModel;
 import org.composer.core.services.AMQPFutureProcessor;
+import org.composer.core.services.UserProcessService;
 import org.composer.core.services.ReactorSinkService;
 import org.composer.core.stubs.SyncProcessorStub;
 import org.composer.core.utils.Task;
@@ -39,7 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class AMQPRouteTest extends CamelTestSupport {
 
     @Mock
-    BusinessProcessXService businessProcessXService;
+    UserProcessService businessProcessXService;
 
     @Mock
     ReactorSinkService reactorSinkService;
@@ -54,14 +55,14 @@ public class AMQPRouteTest extends CamelTestSupport {
 
     @Override
     protected RouteBuilder createRouteBuilder() throws Exception{
-        return new BusinessProcessXRoute(businessProcessXService, reactorSinkService);
+        return new UserRoutes(businessProcessXService, reactorSinkService);
     }
 
 
     @Test
     public void aMQPRouteTest() throws Exception{
 
-        RouteDefinition route = context.getRouteDefinition("X_AMQP_step");
+        RouteDefinition route = context.getRouteDefinition(UserRouteNames.AMQP.name);
         String amqpInput = "buddy!";
 
         AMQPModelGroupDto amqpGroupDto = AMQPModelGroupDto.builder().groupId("A").groupName("B").userId("ABCD").build();
@@ -101,7 +102,7 @@ public class AMQPRouteTest extends CamelTestSupport {
                 .build();
 
         mock.setExpectedMessageCount(1);
-        template.sendBody("direct:X_AMQP_step",model );
+        template.sendBody("direct:"+UserRouteNames.AMQP.name,model );
         mock.assertIsSatisfied();
         Message message = mock.getExchanges().get(0).getMessage();
         CompareUsersModel modelOut = message.getBody(CompareUsersModel.class);
@@ -117,7 +118,7 @@ public class AMQPRouteTest extends CamelTestSupport {
     clause, then propagates down the original route.
      */
     public void aMQPRouteErrorTest() throws Exception{
-        RouteDefinition route = context.getRouteDefinition("X_AMQP_step");
+        RouteDefinition route = context.getRouteDefinition(UserRouteNames.AMQP.name);
         String amqpInput = "buddy!";
         String amqpOutput = "Hello "+amqpInput+"!";
         String exceptionMsg = "Ooops!";
@@ -157,7 +158,7 @@ public class AMQPRouteTest extends CamelTestSupport {
                 .build();
 
         mock.setExpectedMessageCount(1);
-        template.sendBody("direct:X_AMQP_step",model );
+        template.sendBody("direct:"+UserRouteNames.AMQP.name,model );
         mock.assertIsSatisfied();
 
         verify(reactorSinkService).notifyAboutAMQPStep(any());
@@ -174,7 +175,7 @@ public class AMQPRouteTest extends CamelTestSupport {
     So, our exception processor should be called twice.
      */
     public void aMQPRoute2ErrorTest() throws Exception{
-        RouteDefinition route = context.getRouteDefinition("X_AMQP_step");
+        RouteDefinition route = context.getRouteDefinition(UserRouteNames.AMQP.name);
         String amqpInput = "buddy!";
 
         String exceptionMsg = "Ooops!";
@@ -204,7 +205,7 @@ public class AMQPRouteTest extends CamelTestSupport {
         MockEndpoint mock = getMockEndpoint("mock:finishAMQPRoute");
         String taskId="abcdef";
         String grpcInput= "Ann";
-        String grpcOutput= "Hello "+grpcInput;
+
 
         String restInput = "Mark";
         CompareUsersModel model = CompareUsersModel.builder()
@@ -215,11 +216,11 @@ public class AMQPRouteTest extends CamelTestSupport {
                 .build();
 
         mock.setExpectedMessageCount(1);
-        template.sendBody("direct:X_AMQP_step",model );
+        template.sendBody("direct:"+UserRouteNames.AMQP.name,model );
         mock.assertIsSatisfied();
-        Exchange outExchange  = mock.getExchanges().get(0);
-        Message message = mock.getExchanges().get(0).getMessage();
-        CompareUsersModel modelOut = message.getBody(CompareUsersModel.class);
+
+
+
         verify(reactorSinkService).notifyAboutAMQPStep(any());
 
         verify(exceptionProcessor,times(2)).process(any(Exchange.class));
