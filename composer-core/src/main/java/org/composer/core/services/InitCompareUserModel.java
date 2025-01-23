@@ -15,11 +15,20 @@ public class InitCompareUserModel implements Processor {
     @Override
     public void process(Exchange exchange) throws Exception {
         Specs spec = exchange.getMessage().getBody( Specs.class);
-        CompareUsersModel task = this.specToModel.getModelFromSpecs(spec);
         exchange.getMessage().setHeader("id", spec.getTaskId());
-        task.setNextTask();
-        exchange.getMessage().setBody(task);
-        String executor = task.getCurrentTask().getExecutor();
-        exchange.getMessage().setHeader("executor",executor);
+        try{
+            CompareUsersModel task = this.specToModel.getModelFromSpecs(spec);
+
+            task.setNextTask();
+            exchange.getMessage().setBody(task);
+            String executor = task.getCurrentTask().getExecutor();
+            exchange.getMessage().setHeader("executor",executor);
+
+        } catch (Exception e){
+            exchange.getMessage().setHeader("initError",e.getMessage());
+            exchange.getMessage().setHeader("executor","close");
+        }
+
+
     }
 }

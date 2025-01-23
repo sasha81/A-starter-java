@@ -24,6 +24,9 @@ type Group {
     userId: String
     userStatus: Boolean
 }
+type ContainerString {
+    message: String
+}
 
 type ContainerUser {
     userViewContent: [UserView]
@@ -32,7 +35,7 @@ type ContainerResults {
     numberOfUsersMatch: DegreesOfMatching
     groupsOfTheSameUserMatch: DegreesOfMatching
 }
-union OutputContent = ContainerResults | ContainerUser
+union OutputContent = ContainerResults | ContainerUser | ContainerString
 
 type TaskOutput {
    taskId: String!
@@ -42,11 +45,12 @@ type TaskOutput {
 }
 
 enum ProcessStages {
+    CREATE
     GRPC
     AMQP
     REST
+    RESULT
     STOP
-    FINISH
 }
 enum DegreesOfMatching {
     EXACT_MATCH

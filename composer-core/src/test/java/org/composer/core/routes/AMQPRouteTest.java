@@ -14,10 +14,7 @@ import org.composer.core.converters.GetUserModel;
 import org.composer.core.model.ModelUser;
 import org.composer.core.model.Specs;
 import org.composer.core.model.CompareUsersModel;
-import org.composer.core.services.AMQPFutureProcessor;
-import org.composer.core.services.ISpecToModel;
-import org.composer.core.services.ReactorSinkService;
-import org.composer.core.services.SpecToModel;
+import org.composer.core.services.*;
 import org.composer.core.stubs.SyncProcessorStub;
 import org.composer.core.stubs.UtilModelFromSpec;
 import org.composer.core.utils.Task;
@@ -61,7 +58,7 @@ public class AMQPRouteTest extends CamelTestSupport {
 
     @Override
     protected RouteBuilder createRouteBuilder() throws Exception{
-        return new BusinessProcessXRoute(businessProcessXService, reactorSinkService, specToModel);
+        return new UserRoutes(businessProcessXService, reactorSinkService, specToModel);
     }
 
 
@@ -70,7 +67,7 @@ public class AMQPRouteTest extends CamelTestSupport {
 
         Specs specs = Specs.builder().specifications("Spec_1").taskId("ABCD").build();
 
-        RouteDefinition route = context.getRouteDefinition("X_AMQP_step");
+        RouteDefinition route = context.getRouteDefinition(UserRouteNames.AMQP.name);
 
         AMQPModelGroupDto amqpGroupDto = AMQPModelGroupDto.builder().groupId("A").groupName("B").userId("ABCD").build();
         AMQPModelUserDto amqpDto = AMQPModelUserDto.builder().groups(List.of(amqpGroupDto)).name("A").age(15).userId("ABCD").build();
@@ -99,7 +96,7 @@ public class AMQPRouteTest extends CamelTestSupport {
 
         MockEndpoint mock = getMockEndpoint("mock:finishAMQPRoute");
 
-        CompareUsersModel model = UtilModelFromSpec.getModelFromSpecs(specs,"X_AMQP_step");
+        CompareUsersModel model = UtilModelFromSpec.getModelFromSpecs(specs,UserRouteNames.AMQP.name);
         model.setNextTask();
 
         mock.setExpectedMessageCount(1);
@@ -118,7 +115,7 @@ public class AMQPRouteTest extends CamelTestSupport {
         String errorMsg = "Ooops!";
         Specs specs = Specs.builder().specifications("Spec_1").taskId("ABCD").build();
 
-        RouteDefinition route = context.getRouteDefinition("X_AMQP_step");
+        RouteDefinition route = context.getRouteDefinition(UserRouteNames.AMQP.name);
 
         AMQPModelGroupDto amqpGroupDto = AMQPModelGroupDto.builder().groupId("A").groupName("B").userId("ABCD").build();
         AMQPModelUserDto amqpDto = AMQPModelUserDto.builder().groups(List.of(amqpGroupDto)).name("A").age(15).userId("ABCD").build();
@@ -147,11 +144,11 @@ public class AMQPRouteTest extends CamelTestSupport {
 
         MockEndpoint mock = getMockEndpoint("mock:finishAMQPRoute");
 
-        CompareUsersModel model = UtilModelFromSpec.getModelFromSpecs(specs,"X_AMQP_step");
+        CompareUsersModel model = UtilModelFromSpec.getModelFromSpecs(specs,UserRouteNames.AMQP.name);
         model.setNextTask();
         model.getCurrentTask().setErrorMessage(errorMsg);
         mock.setExpectedMessageCount(1);
-        template.sendBody("direct:X_AMQP_step",model );
+        template.sendBody("direct:"+UserRouteNames.AMQP.name,model );
         mock.assertIsSatisfied();
         Message message = mock.getExchanges().get(0).getMessage();
         CompareUsersModel modelOut = message.getBody(CompareUsersModel.class);

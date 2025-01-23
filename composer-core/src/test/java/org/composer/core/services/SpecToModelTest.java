@@ -15,7 +15,7 @@ public class SpecToModelTest {
 
     private final ISpecToModel specToModel = new SpecToModel();
     @Test
-    public void specToModelTest(){
+    public void specToModelTest() throws Exception {
         Specs specs = Specs.builder().specifications("Spec_1").taskId("ABCD").build();
         CompareUsersModel model = specToModel.getModelFromSpecs(specs);
         assertEquals(model.getTask_id(),specs.getTaskId());

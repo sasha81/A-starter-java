@@ -12,10 +12,7 @@ import org.composer.core.converters.*;
 import org.composer.core.model.ModelUser;
 import org.composer.core.model.Specs;
 import org.composer.core.model.CompareUsersModel;
-import org.composer.core.services.ISpecToModel;
-import org.composer.core.services.ReactorSinkService;
-import org.composer.core.services.RestFutureProcessor;
-import org.composer.core.services.SpecToModel;
+import org.composer.core.services.*;
 import org.composer.core.stubs.SyncProcessorStub;
 import org.composer.core.stubs.UtilModelFromSpec;
 import org.composer.core.utils.Task;
@@ -53,14 +50,14 @@ public class RestRouteTest extends CamelTestSupport {
 
     @Override
     protected RouteBuilder createRouteBuilder() throws Exception {
-        return new BusinessProcessXRoute(businessProcessXService, reactorSinkService, specToModel);
+        return new UserRoutes(businessProcessXService, reactorSinkService, specToModel);
     }
 
 
     @Test
     public void RstRouteTest() throws Exception {
         Specs specs = Specs.builder().specifications("Spec_1").taskId("ABCD").build();
-        RouteDefinition route = context.getRouteDefinition("X_Rest_step");
+        RouteDefinition route = context.getRouteDefinition(UserRouteNames.REST.name);
         String restInput = "buddy!";
         String restOutput = "Hello " + restInput + "!";
 
@@ -93,7 +90,7 @@ public class RestRouteTest extends CamelTestSupport {
         MockEndpoint mock = getMockEndpoint("mock:finishRestRoute");
 
 
-        CompareUsersModel model = UtilModelFromSpec.getModelFromSpecs(specs,"X_Rest_step");
+        CompareUsersModel model = UtilModelFromSpec.getModelFromSpecs(specs,UserRouteNames.REST.name);
         model.setNextTask();
 
         mock.setExpectedMessageCount(1);
@@ -108,7 +105,7 @@ public class RestRouteTest extends CamelTestSupport {
     public void RstRouteWithErrorTest() throws Exception {
         String errorMsg = "Ooops!";
         Specs specs = Specs.builder().specifications("Spec_1").taskId("ABCD").build();
-        RouteDefinition route = context.getRouteDefinition("X_Rest_step");
+        RouteDefinition route = context.getRouteDefinition(UserRouteNames.REST.name);
         String restInput = "buddy!";
         String restOutput = "Hello " + restInput + "!";
 
@@ -141,11 +138,11 @@ public class RestRouteTest extends CamelTestSupport {
         MockEndpoint mock = getMockEndpoint("mock:finishRestRoute");
 
 
-        CompareUsersModel model = UtilModelFromSpec.getModelFromSpecs(specs,"X_Rest_step");
+        CompareUsersModel model = UtilModelFromSpec.getModelFromSpecs(specs,UserRouteNames.REST.name);
         model.setNextTask();
         model.getCurrentTask().setErrorMessage(errorMsg);
         mock.setExpectedMessageCount(1);
-        template.sendBody("direct:X_Rest_step", model);
+        template.sendBody("direct:"+UserRouteNames.REST.name, model);
         mock.assertIsSatisfied();
         Message message = mock.getExchanges().get(0).getMessage();
         CompareUsersModel modelOut = message.getBody(CompareUsersModel.class);

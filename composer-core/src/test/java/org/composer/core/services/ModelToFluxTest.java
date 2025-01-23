@@ -17,7 +17,7 @@ public class ModelToFluxTest {
     private final ModelToFlux modelToFluxService= new ModelToFlux();
 
     @Test
-    public void modelToGrpcContainer(){
+    public void modelToGrpcContainer() throws Exception {
         Specs specs = Specs.builder().specifications("Spec_1").taskId("ABCD").build();
         String userId = "12345";
         ModelGroup group = ModelGroup.builder().userId(userId).groupId("123").groupName("Ggg").build();
@@ -35,7 +35,7 @@ public class ModelToFluxTest {
     }
 
     @Test
-    public void modelToAmqpContainer(){
+    public void modelToAmqpContainer() throws Exception {
         Specs specs = Specs.builder().specifications("Spec_1").taskId("ABCD").build();
         String userId = "12345";
         ModelGroup group = ModelGroup.builder().userId(userId).groupId("123").groupName("Ggg").build();
@@ -53,7 +53,7 @@ public class ModelToFluxTest {
     }
 
     @Test
-    public void modelToRestContainer(){
+    public void modelToRestContainer() throws Exception {
         Specs specs = Specs.builder().specifications("Spec_1").taskId("ABCD").build();
         String userId = "12345";
         ModelGroup group = ModelGroup.builder().userId(userId).groupId("123").groupName("Ggg").build();

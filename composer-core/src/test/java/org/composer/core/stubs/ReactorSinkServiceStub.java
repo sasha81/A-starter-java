@@ -18,6 +18,11 @@ public class ReactorSinkServiceStub implements IReactorSinkService {
 
 
     @Override
+    public void notifyAboutCreateStep(Exchange exchange) {
+
+    }
+
+    @Override
     public void notifyAboutRestStep(Exchange exchange) {
 
     }
@@ -36,7 +41,7 @@ public class ReactorSinkServiceStub implements IReactorSinkService {
     }
 
     @Override
-    public void notifyAboutFinished(Exchange exchange) {
+    public void notifyAboutResultStep(Exchange exchange) {
 
     }
 

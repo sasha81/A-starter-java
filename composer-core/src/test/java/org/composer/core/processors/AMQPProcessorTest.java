@@ -39,7 +39,7 @@ public class AMQPProcessorTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private  final ISpecToModel specToModel= new SpecToModel();
     @Test
-    public void aMQPProcessorTest(){
+    public void aMQPProcessorTest() throws Exception {
         Specs specs = Specs.builder().specifications("Spec_1").taskId("ABCD").build();
 
         CountDownLatch latch = new CountDownLatch(1);
@@ -98,7 +98,7 @@ public class AMQPProcessorTest {
     }
 
     @Test
-    public void aMQPProcessorErrorTest(){
+    public void aMQPProcessorErrorTest() throws Exception {
         Specs specs = Specs.builder().specifications("Spec_1").taskId("ABCD").build();
 
         CountDownLatch latch = new CountDownLatch(1);

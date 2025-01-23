@@ -1,7 +1,11 @@
-package org.composer.core.routes;
+package org.composer.core.services;
 
 
 import org.apache.camel.Exchange;
+import org.composer.core.model.CompareUsersModel;
+import org.composer.core.model.ContainerResults;
+import org.composer.core.model.DegreesOfMatching;
+import org.composer.core.utils.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -37,8 +41,15 @@ public class BusinessProcessXService {
         logger.info("X_step_3_postprocessed for exchange id "+exchange.getExchangeId());
     }
 
-    public void process_X_final(Exchange exchange){
-        logger.info("Final_preprocessed for exchange id "+exchange.getExchangeId());
+    public void process_X_Result(Exchange exchange){
+        CompareUsersModel body = exchange.getMessage().getBody(CompareUsersModel.class);
+
+        var result = ContainerResults.builder()
+                .groupsOfTheSameUserMatch(DegreesOfMatching.CLOSE)
+                .numberOfUsersMatch(DegreesOfMatching.DIFFERENT)
+                .build();
+        ((Task<String, String, ContainerResults>) body.getCurrentTask()).setOutput(result);
+        logger.info("Result_processed for exchange id "+exchange.getExchangeId());
     }
 
 

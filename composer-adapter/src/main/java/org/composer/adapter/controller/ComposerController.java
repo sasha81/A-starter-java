@@ -14,6 +14,8 @@ import reactor.core.publisher.Flux;
 
 import java.io.IOException;
 
+import static org.composer.core.routes.UserRouteNames.NEW_COMPARE_USERS;
+
 @RestController
 @RequestMapping(path="/composerTasks")
 public class ComposerController {
@@ -36,7 +38,7 @@ public class ComposerController {
         Flux<FluxMessageContainer<?>> rawFlux = sinkMapService.getNewFluxWithId(taskId);
         Flux<ServerSentEvent<OutputDto>> outFlux = fluxProcessingService.postProcessContainerFlux(rawFlux,taskId,()->sinkMapService.deleteMap(taskId) );
 
-        this.sendToCamelService.sendBodyToCamel("direct:new_CompareUsers_task", Specs
+        this.sendToCamelService.sendBodyToCamel("direct:"+NEW_COMPARE_USERS.name, Specs
                 .builder().specifications(input.getSpecifics()).taskId(taskId).build());
         return outFlux;
 

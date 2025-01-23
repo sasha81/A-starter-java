@@ -1,6 +1,7 @@
 package org.composer.core.services;
 
 import org.composer.core.model.*;
+import org.composer.core.utils.Task;
 
 import java.util.Collection;
 import java.util.List;
@@ -30,12 +31,10 @@ public class ModelToFlux implements IModelToFlux{
     }
 
     public FluxMessageContainer<ContainerResults> getFluxResults(CompareUsersModel body){
+        var result = (Task<String, String, ContainerResults>) body.getCurrentTask();
         return FluxMessageContainer.<ContainerResults>builder()
-                .taskId(body.getTask_id()).stage(ProcessStages.FINISH)
-                .content(ContainerResults.builder()
-                        .groupsOfTheSameUserMatch(DegreesOfMatching.CLOSE)
-                        .numberOfUsersMatch(DegreesOfMatching.DIFFERENT)
-                        .build())
+                .taskId(body.getTask_id()).stage(ProcessStages.RESULT)
+                .content(result.getOutput())
                 .build();
     }
 }

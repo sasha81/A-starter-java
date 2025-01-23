@@ -3,8 +3,7 @@ package org.composer.core.routes;
 
 import org.composer.core.model.ModelUser;
 import org.composer.core.model.Specs;
-import org.composer.core.services.ISpecToModel;
-import org.composer.core.services.SpecToModel;
+import org.composer.core.services.*;
 import org.composer.core.stubs.UtilModelFromSpec;
 import users.Users;
 import org.apache.camel.Exchange;
@@ -15,8 +14,6 @@ import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.model.RouteDefinition;
 import org.apache.camel.test.junit5.CamelTestSupport;
 import org.composer.core.model.CompareUsersModel;
-import org.composer.core.services.GRPCRunnableAsyncProcessor;
-import org.composer.core.services.ReactorSinkService;
 import org.composer.core.utils.Task;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -49,7 +46,7 @@ public class GRPCRouteTest extends CamelTestSupport{
 
 @Override
 protected RouteBuilder createRouteBuilder() throws Exception{
-        return new BusinessProcessXRoute(businessProcessXService, reactorSinkService, specToModel);
+        return new UserRoutes(businessProcessXService, reactorSinkService, specToModel);
 }
 
 
@@ -57,7 +54,7 @@ protected RouteBuilder createRouteBuilder() throws Exception{
     @Test
     public void gRPCRouteTest() throws Exception {
         Specs specs = Specs.builder().specifications("Spec_1").taskId("ABCD").build();
-        RouteDefinition route = context.getRouteDefinition("X_GRPC_step");
+        RouteDefinition route = context.getRouteDefinition(UserRouteNames.GRPC.name);
         Users.Group group = Users.Group.newBuilder().setGroupId("12345")
                 .setGroupname("Physics").setUserId("ABC").build();
         Users.UserViewDto userViewDto = Users.UserViewDto.newBuilder()
@@ -89,11 +86,11 @@ protected RouteBuilder createRouteBuilder() throws Exception{
 
         MockEndpoint mock = getMockEndpoint("mock:finishGRPCRoute");
 
-        CompareUsersModel model = UtilModelFromSpec.getModelFromSpecs(specs,"X_GRPC_step");
+        CompareUsersModel model = UtilModelFromSpec.getModelFromSpecs(specs,UserRouteNames.GRPC.name);
         model.setNextTask();
 
         mock.setExpectedMessageCount(1);
-        template.sendBody("direct:X_GRPC_step",model );
+        template.sendBody("direct:"+UserRouteNames.GRPC.name,model );
         mock.assertIsSatisfied();
         Message message = mock.getExchanges().get(0).getMessage();
         CompareUsersModel modelOut = message.getBody(CompareUsersModel.class);
@@ -110,7 +107,7 @@ protected RouteBuilder createRouteBuilder() throws Exception{
     public void gRPCRouteWithErrorTest() throws Exception {
         String errorMsg = "Ooops!";
         Specs specs = Specs.builder().specifications("Spec_1").taskId("ABCD").build();
-        RouteDefinition route = context.getRouteDefinition("X_GRPC_step");
+        RouteDefinition route = context.getRouteDefinition(UserRouteNames.GRPC.name);
         Users.Group group = Users.Group.newBuilder().setGroupId("12345")
                 .setGroupname("Physics").setUserId("ABC").build();
         Users.UserViewDto userViewDto = Users.UserViewDto.newBuilder()
@@ -146,7 +143,7 @@ protected RouteBuilder createRouteBuilder() throws Exception{
         model.setNextTask();
         model.getCurrentTask().setErrorMessage(errorMsg);
         mock.setExpectedMessageCount(1);
-        template.sendBody("direct:X_GRPC_step",model );
+        template.sendBody("direct:"+UserRouteNames.GRPC.name,model );
         mock.assertIsSatisfied();
         Message message = mock.getExchanges().get(0).getMessage();
         CompareUsersModel modelOut = message.getBody(CompareUsersModel.class);

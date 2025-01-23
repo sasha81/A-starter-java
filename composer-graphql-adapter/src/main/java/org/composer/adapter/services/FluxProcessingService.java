@@ -24,14 +24,6 @@ public class FluxProcessingService implements IFluxProcessingService  {
         return UUID.randomUUID().toString();
     }
 
-//    public XTaskModel getXModelFromDto(TaskInput dto, String taskId){
-//        return XTaskModel.builder()
-//                .task_id(taskId)
-//                .rest_step(Task.<String, String, List<ModelUser>>builder().input(dto.getSpecifics()).build())
-//                .amqp_step(Task.<String, String, List<ModelUser>>builder().input(dto.getSpecifics()).build())
-//                .grpc_step(Task.<String, String, List<ModelUser>>builder().input(dto.getSpecifics()).build())
-//                .build();
-//    }
     public Flux<TaskOutput> postProcessContainerFlux(Flux<FluxMessageContainer<?>> inFlux, String taskId, Runnable doOnCancel){
         Flux<TaskOutput> outFlux = inFlux
                 .filter(msg-> msg.getTaskId().equals(taskId))
@@ -63,14 +55,18 @@ public class FluxProcessingService implements IFluxProcessingService  {
                     .stage(input.getStage()).build();
 
         }
-        else if (stage == ProcessStages.FINISH){
+        else if (stage == ProcessStages.RESULT){
 
             return TaskOutput.builder().taskId(input.getTaskId())
                     .content(content).stage(input.getStage()).build();
         }
+        else if (stage == ProcessStages.CREATE){
+            return TaskOutput.builder().taskId(input.getTaskId())
+                    .content(ContainerString.builder().message((String)content).build()).stage(stage).build();
+        }
         else{
             return TaskOutput.builder().taskId(input.getTaskId())
-                    .content(content).stage(input.getStage()).build();
+                    .content(content).stage(stage).build();
         }
     }
 

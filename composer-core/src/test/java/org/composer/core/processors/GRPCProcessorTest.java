@@ -43,7 +43,7 @@ public class GRPCProcessorTest {
 
 
     @Test
-    public void gRPCProcessorTest(){
+    public void gRPCProcessorTest() throws Exception {
         Specs specs = Specs.builder().specifications("Spec_1").taskId("ABCD").build();
 
         CountDownLatch latch = new CountDownLatch(1);
@@ -92,7 +92,7 @@ public class GRPCProcessorTest {
     }
 
     @Test
-    public void gRPCErrorProcessorTest(){
+    public void gRPCErrorProcessorTest() throws Exception {
         Specs specs = Specs.builder().specifications("Spec_1").taskId("ABCD").build();
         CountDownLatch latch = new CountDownLatch(1);
         CamelContext camelContext = new SimpleCamelContext();

@@ -22,6 +22,20 @@ public class ReactorSinkService implements IReactorSinkService {
     }
 
 
+    @Override
+    public void notifyAboutCreateStep(Exchange exchange) {
+        String taskId = (String)exchange.getMessage().getHeader("id");
+        String msg="Compare User Task "+taskId+" successfully started";
+        String errMsg =(String) exchange.getMessage().getHeader("initError");
+        if(errMsg==null || errMsg.isEmpty()){
+            sinkMapService.publish(taskId, FluxMessageContainer.builder()
+                    .taskId(taskId).stage(ProcessStages.CREATE).content(msg).build());
+        }else{
+            sinkMapService.publish(taskId, FluxMessageContainer.builder()
+                    .taskId(taskId).stage(ProcessStages.CREATE).error(errMsg).build());
+        }
+    }
+
     public void notifyAboutRestStep(Exchange exchange){
         CompareUsersModel body = exchange.getMessage().getBody(CompareUsersModel.class);
         String taskId = body.getTask_id();
@@ -68,16 +82,16 @@ public class ReactorSinkService implements IReactorSinkService {
 
     }
 
-    public void notifyAboutFinished(Exchange exchange){
+    public void notifyAboutResultStep(Exchange exchange){
         CompareUsersModel body = exchange.getMessage().getBody(CompareUsersModel.class);
         String taskId = body.getTask_id();;
-        String msg = "Processing FINISHED";
+        String msg = "Processing RESULT";
         sinkMapService.publish(taskId, modelToFlux.getFluxResults(body));
-        logger.info("FinishStep :"+taskId+" "+msg);
+        logger.info("ResultStep :"+taskId+" "+msg);
     }
 
     public void close(Exchange exchange){
-        String taskId = exchange.getMessage().getBody(CompareUsersModel.class).getTask_id();
+        String taskId = (String)exchange.getMessage().getHeader("id");
 
         sinkMapService.publish(taskId, FluxMessageContainer.builder()
                 .taskId(taskId).stage(ProcessStages.STOP).content(null).build());

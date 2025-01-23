@@ -6,8 +6,6 @@ import org.composer.core.model.CompareUsersModel;
 import java.util.List;
 
 public interface ISpecToModel {
-
-    CompareUsersModel getModelFromSpecs(Specs specs);
-    List<String> getExecutionSequence(Specs specs);
+    CompareUsersModel getModelFromSpecs(Specs specs) throws Exception;
 
 }

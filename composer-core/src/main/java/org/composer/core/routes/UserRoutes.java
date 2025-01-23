@@ -2,8 +2,6 @@ package org.composer.core.routes;
 
 
 
-import org.composer.core.model.Specs;
-import org.composer.core.model.CompareUsersModel;
 import org.composer.core.services.*;
 import org.composer.core.utils.ThreadPoolShutdownStrategy;
 import net.devh.boot.grpc.client.inject.GrpcClient;
@@ -20,7 +18,7 @@ import users.UsersServiceGrpc;
 import java.util.concurrent.ExecutorService;
 
 @Component
-public class BusinessProcessXRoute extends RouteBuilder {
+public class UserRoutes extends RouteBuilder {
 
     @GrpcClient("nest-grpc")
     private UsersServiceGrpc.UsersServiceStub nestStub;
@@ -47,7 +45,7 @@ public class BusinessProcessXRoute extends RouteBuilder {
     private  final ISpecToModel specToModel;
     private final int DELAY = 0;
 
-    public BusinessProcessXRoute(BusinessProcessXService businessProcessXService, IReactorSinkService reactorSinkService, ISpecToModel specToModel) {
+    public UserRoutes(BusinessProcessXService businessProcessXService, IReactorSinkService reactorSinkService, ISpecToModel specToModel) {
         this.businessProcessXService = businessProcessXService;
 
         this.reactorSinkService = reactorSinkService;
@@ -69,17 +67,17 @@ public class BusinessProcessXRoute extends RouteBuilder {
 
         context.setShutdownStrategy(new ThreadPoolShutdownStrategy(context, executorService));
 
-        from("direct:new_CompareUsers_task")
+        from("direct:"+UserRouteNames.NEW_COMPARE_USERS.name)
                 .log(LoggingLevel.INFO, "Init a new Compare task for the input: ${body}")
                 .log(LoggingLevel.INFO, "Current thread: " + Thread.currentThread().getId())
                 .process(new InitCompareUserModel(specToModel))
-
+                .bean(reactorSinkService, "notifyAboutCreateStep")
                 .log(LoggingLevel.INFO, "executor: ${header.executor}")
                 .log(LoggingLevel.INFO, "Current thread: " + Thread.currentThread().getId())
                 .toD("direct:${header.executor}");
 
 
-        from("direct:X_Rest_step").id("X_Rest_step")
+        from("direct:"+UserRouteNames.REST.name).id("X_Rest_step")
                 .log(LoggingLevel.INFO, "Current thread: " + Thread.currentThread().getId())
                 .setBody(body())
                 .process(new RestFutureProcessor(webClient, restUrl)).id("Rest_Async_Processor")
@@ -91,14 +89,14 @@ public class BusinessProcessXRoute extends RouteBuilder {
 
 
 
-        from("direct:X_finish")
-                .bean(businessProcessXService, "process_X_final")
-                .bean(reactorSinkService, "notifyAboutFinished")
+        from("direct:"+UserRouteNames.RESULT.name)
+                .bean(businessProcessXService, "process_X_Result")
+                .bean(reactorSinkService, "notifyAboutResultStep")
                 .log("ID: ${header.id}")
                 .to("direct:close")
         ;
 
-        from("direct:X_AMQP_step").id("X_AMQP_step")
+        from("direct:"+UserRouteNames.AMQP.name).id("X_AMQP_step")
                 .process(new AMQPFutureProcessor(rabbitTemplate,exchangeName,nestRoutingkey)).id("AMQP_Async_Processor")
                 .bean(reactorSinkService, "notifyAboutAMQPStep")
                 .process(new SetNextTaskProcessor())
@@ -107,7 +105,7 @@ public class BusinessProcessXRoute extends RouteBuilder {
         ;
 
 
-        from("direct:X_GRPC_step").id("X_GRPC_step")
+        from("direct:"+UserRouteNames.GRPC.name).id("X_GRPC_step")
                 .log(LoggingLevel.INFO, "Current thread: " + Thread.currentThread().getId())
                 .process(new GRPCRunnableAsyncProcessor(executorService, nestStub)).id("GRPC_Async_Processor")
                 .bean(reactorSinkService, "notifyAboutGRPCStep")
@@ -116,7 +114,7 @@ public class BusinessProcessXRoute extends RouteBuilder {
                 .toD("direct:${header.executor}")
         ;
 
-        from("direct:close")
+        from("direct:"+UserRouteNames.END.name)
                 .bean(reactorSinkService, "close");
     }
 }

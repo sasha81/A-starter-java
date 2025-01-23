@@ -35,7 +35,7 @@ import static org.mockito.Mockito.*;
 public class RestProcessorTest {
     private  final ISpecToModel specToModel= new SpecToModel();
     @Test
-    public void restProcessorTest(){
+    public void restProcessorTest() throws Exception {
         Specs specs = Specs.builder().specifications("Spec_1").taskId("ABCD").build();
         String uri = "/users/all";
         CountDownLatch latch = new CountDownLatch(1);
@@ -92,7 +92,7 @@ public class RestProcessorTest {
                 ,userViewDto.getGroups().get(0).getGroupId());
     }
     @Test
-    public void restProcessorErrorTest(){
+    public void restProcessorErrorTest() throws Exception {
         Specs specs = Specs.builder().specifications("Spec_1").taskId("ABCD").build();
         String uri = "/users/all";
         CountDownLatch latch = new CountDownLatch(1);

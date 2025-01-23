@@ -14,6 +14,6 @@ public interface IFluxProcessingService {
     public Specs getSpecsFromInput(TaskInput input);
     public String getTaskId();
 
-   // public XTaskModel getXModelFromDto(TaskInput dto, String taskId);
+
     public Flux<TaskOutput> postProcessContainerFlux(Flux<FluxMessageContainer<?>> inFlux, String taskId, Runnable doOnCancel);
 }
