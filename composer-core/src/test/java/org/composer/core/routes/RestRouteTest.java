@@ -36,7 +36,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 public class RestRouteTest extends CamelTestSupport {
     @Mock
-    BusinessProcessXService businessProcessXService;
+    UserProcessService userProcessService;
     @Mock
     ReactorSinkService reactorSinkService;
     @Spy
@@ -50,7 +50,7 @@ public class RestRouteTest extends CamelTestSupport {
 
     @Override
     protected RouteBuilder createRouteBuilder() throws Exception {
-        return new UserRoutes(businessProcessXService, reactorSinkService, specToModel);
+        return new UserRoutes(userProcessService, reactorSinkService, specToModel);
     }
 
 

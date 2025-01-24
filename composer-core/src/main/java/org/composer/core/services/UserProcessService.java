@@ -11,9 +11,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
-public class BusinessProcessXService {
+public class UserProcessService {
 
-    Logger logger = LoggerFactory.getLogger(BusinessProcessXService.class);
+    Logger logger = LoggerFactory.getLogger(UserProcessService.class);
 
 
 

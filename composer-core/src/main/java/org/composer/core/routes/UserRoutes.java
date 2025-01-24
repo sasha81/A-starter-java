@@ -39,14 +39,14 @@ public class UserRoutes extends RouteBuilder {
 
     private static final String DESTINATION_FOLDER
             = "src/test/exceptions";
-    private final BusinessProcessXService businessProcessXService;
+    private final UserProcessService userProcessService;
 
     private final IReactorSinkService reactorSinkService;
     private  final ISpecToModel specToModel;
     private final int DELAY = 0;
 
-    public UserRoutes(BusinessProcessXService businessProcessXService, IReactorSinkService reactorSinkService, ISpecToModel specToModel) {
-        this.businessProcessXService = businessProcessXService;
+    public UserRoutes(UserProcessService userProcessService, IReactorSinkService reactorSinkService, ISpecToModel specToModel) {
+        this.userProcessService = userProcessService;
 
         this.reactorSinkService = reactorSinkService;
         this.specToModel = specToModel;
@@ -90,7 +90,7 @@ public class UserRoutes extends RouteBuilder {
 
 
         from("direct:"+UserRouteNames.RESULT.name)
-                .bean(businessProcessXService, "process_X_Result")
+                .bean(userProcessService, "process_X_Result")
                 .bean(reactorSinkService, "notifyAboutResultStep")
                 .log("ID: ${header.id}")
                 .to("direct:close")

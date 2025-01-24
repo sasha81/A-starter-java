@@ -33,7 +33,7 @@ import static org.mockito.Mockito.doAnswer;
 public class GRPCRouteTest extends CamelTestSupport{
 
     @Mock
-    BusinessProcessXService businessProcessXService;
+    UserProcessService userProcessService;
 
     @Mock
     ReactorSinkService reactorSinkService;
@@ -46,7 +46,7 @@ public class GRPCRouteTest extends CamelTestSupport{
 
 @Override
 protected RouteBuilder createRouteBuilder() throws Exception{
-        return new UserRoutes(businessProcessXService, reactorSinkService, specToModel);
+        return new UserRoutes(userProcessService, reactorSinkService, specToModel);
 }
 
 
